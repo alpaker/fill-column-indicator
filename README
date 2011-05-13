@@ -3,7 +3,7 @@ fill-column-indicator.el --- graphically indicate the fill column
 Copyright (c) 2011 Alp Aker 
 
 Author: Alp Aker <aker@pitt.edu>
-Version: 0.36
+Version: 0.40
 
 Many modern editors and IDEs can graphically indicate the location of the
 fill column, either by shading the area to the right of the fill column or

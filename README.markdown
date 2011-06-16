@@ -10,7 +10,7 @@ Installation and Usage
 
 Put this file in your load path and put
 
-  (require 'fill-column-indicator)
+> (require 'fill-column-indicator)
 
 in your .emacs.
 
@@ -64,20 +64,20 @@ truncate-lines is nil.)
 Troubleshooting
 ===============
 
-o If the fill-column rule is misaligned on some lines but otherwise looks
+* If the fill-column rule is misaligned on some lines but otherwise looks
   normal, then you're most likely not displaying the buffer contents with
   a monospaced font.  Check whether the lines in question contain
   non-ascii characters that are wider or shorter than the normal character
   width.  Also, be aware that certain font-lock themes set some faces so
   that they look monospaced but aren't quite so.
 
-o Although the XBM format is natively supported by Emacs, the
+* Although the XBM format is natively supported by Emacs, the
   implementation on some ports is incomplete; the v23 and v24 Mac OS X
   ports are examples.  On these systems XBM images are always drawn in
   black, in which case one cannot control the color of the rule.  Use XPM
   or PBM images instead.
 
-o Fci-mode needs free use of two characters (specifically, it needs the
+* Fci-mode needs free use of two characters (specifically, it needs the
   use of two characters whose display table entries it can change
   arbitrarily).  By default, it uses the first two characters of the
   Private Use Area of the Unicode BMP, viz. U+E000 and U+E001.  If you
@@ -87,16 +87,16 @@ o Fci-mode needs free use of two characters (specifically, it needs the
 Known Issues
 ============
 
-o The indicator extends only to end of the buffer contents (as opposed to
+* The indicator extends only to end of the buffer contents (as opposed to
   running the full length of the editing window).
 
-o When portions of a buffer are invisible, such as when outline mode is
+* When portions of a buffer are invisible, such as when outline mode is
   used to hide certain lines, the fill-column rule is hidden as
   well.  (Working around this would require either (a) rewriting a large
   part of xdisp.c, or (b) advising every function that might hide part of
   a buffer.)
 
-o Fci-mode is generally fast:  Displaying the rule should be O(n) in the
+* Fci-mode is generally fast:  Displaying the rule should be O(n) in the
   number of lines in a buffer, with a low constant.  (Activating the mode
   in a buffer with 30k lines should take under 0.5 sec on a modern
   machine.)  However, the presence of multibyte characters can slow down
@@ -104,21 +104,14 @@ o Fci-mode is generally fast:  Displaying the rule should be O(n) in the
   the buffer.  (This problem stems from the fact that the performance of
   the primitive overlay commands is degraded by multibyte characters.)
 
-o An issue specifc to the Mac OS X (NextStep) port, versions 23.0-23.2: On
-  graphical displays, the cursor will disappear when positioned directly
-  on top of the fill-column rule (i.e., when it is positioned at the end
-  of a line that extends up to but not past the fill-column).  The best
-  way to deal with this is to upgrade to 23.3 or to 24 (or downgrade to
-  22).  If that isn't practical, a fix is available via the mini-package
-  fci-osx-23-fix.el, which can be downloaded from either:
-
-    github.com/alpaker/Fill-Column-Indicator
-
-  or
-
-    emacswiki.org/emacs/FillColumnIndicator
-
- Directions for its use are given in the file header.
+* An issue specifc to the Mac OS X (NextStep) port, versions 23.0-23.2: On
+  graphical displays, the cursor will disappear when positioned directly on
+  top of the fill-column rule (i.e., when it is positioned at the end of a
+  line that extends up to but not past the fill-column).  The best way to
+  deal with this is to upgrade to 23.3 or to 24 (or downgrade to 22).  If
+  that isn't practical, a fix is available via the mini-package
+  fci-osx-23-fix.el, which can be downloaded from this page.  Directions for
+  its use are given in the file header.
 
 Todo
 ====

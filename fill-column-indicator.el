@@ -120,12 +120,11 @@
 
 ;; o Fci-mode is generally fast:  Displaying the rule should be O(n) in the
 ;;   number of lines in a buffer, with a low constant.  (Activating the mode
-;;   in a 1MB buffer with ASCII contents should take under 0.5 sec on a
-;;   modern machine.)  However, the presence of multibyte characters can slow
-;;   down its performance by an order of magnitude or more and have a similar
-;;   effect on vertical navigation commands.  This is puzzling as none of the
-;;   search commands used by the package operate on non-ascii
-;;   characters.  Any insight into this phenomenon would be welcome.
+;;   in a buffer with 30k lines should take under 0.5 sec on a modern
+;;   machine.)  However, the presence of multibyte characters can slow down
+;;   its performance, in proportion to the number of multibyte characters in
+;;   the buffer.  (This problem stems from the fact that the performance of
+;;   the primitive overlay commands is degraded by multibyte characters.)
 
 ;; o An issue specifc to the Mac OS X (NextStep) port, versions 23.0-23.2: On
 ;;   graphical displays, the cursor will disappear when positioned directly

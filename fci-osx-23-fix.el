@@ -3,7 +3,7 @@
 ;; Copyright (c) 2011 Alp Aker 
 
 ;; Author: Alp Aker <alp.tekin.aker@gmail.com>
-;; Version: 1.51
+;; Version: 1.53
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or
@@ -23,13 +23,15 @@
 ;;; Commentary:
 
 ;; You should only need to use this if you're using fill-column-indicator
-;; with the Mac OS X port, versions 23.0 through 23.2.  (It is *not* needed
-;; with v22.)  To use it, simply place this file in your load path and put 
+;; with the Mac OS X (NextStep) port, versions 23.0 through 23.2.  (It is
+;; *not* needed with v22.)  To use it, simply place this file in your load
+;; path and put
 ;;
 ;;   (require 'fci-osx-23-fix)
 ;;
-;; in your .emacs.  (You need to place this `require' form after 
-;; (require 'fill-column-indicator).)
+;; in your .emacs.  
+
+(require 'fill-column-indicator)
 
 (defvar fci-nextstep-23-hack-cache nil)
 

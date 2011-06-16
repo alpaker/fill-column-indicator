@@ -3,7 +3,7 @@ fill column by drawing a thin line (in design parlance, a 'rule') down the
 length of the editing window.  Fill-column-indicator implements this
 facility in Emacs:
 
-![screenshot](https://github.com/alpaker/Fill-Column-Indicator/master/FciRuleStyle.png)
+![screenshot](https://github.com/alpaker/Fill-Column-Indicator/raw/master/FciRuleStyle.png)
 
 Installation and Usage
 ======================

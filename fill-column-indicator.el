@@ -3,7 +3,7 @@
 ;; Copyright (c) 2011 Alp Aker
 
 ;; Author: Alp Aker <alp.tekin.aker@gmail.com>
-;; Version: 1.53
+;; Version: 1.54
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or
@@ -506,14 +506,14 @@ troubleshooting.)"
 
 (defun fci-make-before-strings ()
   (let* ((color (fci-get-rule-color))
-         (rule-str (fci-make-rule-string color))
-         (rule-spec (fci-make-rule-spec fci-rule-width color))
+         (str (fci-make-rule-string color))
+         (spec (fci-make-rule-spec fci-rule-width color))
          (blank (char-to-string fci-padding-char))
          (end-cap (propertize blank 'display '(space :width 0)))
          (eol (fci-eol-display blank (char-to-string fci-eol-char)))
          (padding (propertize blank 'display fci-padding-display))
-         (before-rule (fci-rule-display blank rule-spec rule-str nil))
-         (at-rule (fci-rule-display blank rule-spec rule-str fci-newline-sentinel))
+         (before-rule (fci-rule-display blank spec str t))
+         (at-rule (fci-rule-display blank spec str fci-newline-sentinel))
          (at-eol (if fci-newline-sentinel eol "")))
     (setq fci-pre-limit-string (concat eol padding before-rule end-cap)
           fci-at-limit-string (concat at-eol padding at-rule end-cap)

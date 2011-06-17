@@ -375,33 +375,33 @@ troubleshooting.)"
 
   nil nil nil
 
-	(if fci-mode
-	;; Enabling.
-	(progn
-		(fci-process-display-table)
-		(setq fci-column fill-column
-					fci-tab-width tab-width
-					fci-limit (if fci-newline-sentinel
-												(1+ (- fill-column (length fci-saved-eol)))
-											fill-column))
-		(fci-make-before-strings)
-		;; In case we were already in fci-mode and are resetting the
-		;; indicator, clear out any existing overlays.
-		(when fci-local-vars-set
-			(fci-delete-overlays-buffer))
-		(fci-set-local-vars)
-		(fci-put-overlays-buffer))
+  (if fci-mode
+  ;; Enabling.
+  (progn
+    (fci-process-display-table)
+    (setq fci-column fill-column
+          fci-tab-width tab-width
+          fci-limit (if fci-newline-sentinel
+                        (1+ (- fill-column (length fci-saved-eol)))
+                      fill-column))
+    (fci-make-before-strings)
+    ;; In case we were already in fci-mode and are resetting the
+    ;; indicator, clear out any existing overlays.
+    (when fci-local-vars-set
+      (fci-delete-overlays-buffer))
+    (fci-set-local-vars)
+    (fci-put-overlays-buffer))
 
-	;; Disabling.
-	(fci-delete-overlays-buffer)
-	(fci-restore-display-table)
-	(fci-restore-local-vars)
-	(setq fci-column nil
-				fci-limit nil
-				fci-tab-width nil
-				fci-pre-limit-string nil
-				fci-at-limit-string nil
-				fci-post-limit-string nil)))
+  ;; Disabling.
+  (fci-delete-overlays-buffer)
+  (fci-restore-display-table)
+  (fci-restore-local-vars)
+  (setq fci-column nil
+        fci-limit nil
+        fci-tab-width nil
+        fci-pre-limit-string nil
+        fci-at-limit-string nil
+        fci-post-limit-string nil)))
 
 ;;; ---------------------------------------------------------------------
 ;;; Initialization and Clean Up: Display Table
@@ -476,9 +476,9 @@ troubleshooting.)"
 ;;; ---------------------------------------------------------------------
 
 (defun fci-eol-display (blank eol)
-	(propertize blank 'display (propertize eol 'cursor 1)))
+  (propertize blank 'display (propertize eol 'cursor 1)))
 
-(defsubst fci-overlay-check (pos)
+(defun fci-overlay-check (pos)
   (not (memq t (mapcar #'(lambda (x)
                            (and (not (overlay-get x 'fci))
                                 (overlay-get x 'face)
@@ -495,7 +495,7 @@ troubleshooting.)"
                 'display
                 (if spec
                     `((when (and (not (display-images-p)) 
-																 (fci-overlay-check buffer-position))
+                                 (fci-overlay-check buffer-position))
                         . ,(propertize str 'cursor cursor))
                       (when (fci-overlay-check buffer-position)
                         . ,spec)
@@ -505,19 +505,19 @@ troubleshooting.)"
                     (space :width 0))))))
 
 (defun fci-make-before-strings ()
-	(let* ((color (fci-get-rule-color))
-				 (rule-str (fci-make-rule-string color))
-				 (rule-spec (fci-make-rule-spec fci-rule-width color))
-				 (blank (char-to-string fci-padding-char))
-				 (end-cap (propertize blank 'display '(space :width 0)))
-				 (eol (fci-eol-display blank (char-to-string fci-eol-char)))
-				 (padding (propertize blank 'display fci-padding-display))
-				 (before-rule (fci-rule-display blank rule-spec rule-str nil))
-				 (at-rule (fci-rule-display blank rule-spec rule-str fci-newline-sentinel))
-				 (at-eol (if fci-newline-sentinel eol "")))
-		(setq fci-pre-limit-string (concat eol padding before-rule end-cap)
-					fci-at-limit-string (concat at-eol padding at-rule end-cap)
-					fci-post-limit-string (concat eol end-cap))))
+  (let* ((color (fci-get-rule-color))
+         (rule-str (fci-make-rule-string color))
+         (rule-spec (fci-make-rule-spec fci-rule-width color))
+         (blank (char-to-string fci-padding-char))
+         (end-cap (propertize blank 'display '(space :width 0)))
+         (eol (fci-eol-display blank (char-to-string fci-eol-char)))
+         (padding (propertize blank 'display fci-padding-display))
+         (before-rule (fci-rule-display blank rule-spec rule-str nil))
+         (at-rule (fci-rule-display blank rule-spec rule-str fci-newline-sentinel))
+         (at-eol (if fci-newline-sentinel eol "")))
+    (setq fci-pre-limit-string (concat eol padding before-rule end-cap)
+          fci-at-limit-string (concat at-eol padding at-rule end-cap)
+          fci-post-limit-string (concat eol end-cap))))
 
 ;;; ---------------------------------------------------------------------
 ;;; Initialization:  Create Rule Bitmap and Propertize Rule String
@@ -638,16 +638,16 @@ troubleshooting.)"
   (let (o cc)
     (while (search-forward "\n" end t)
       (goto-char (match-beginning 0))
-			(setq cc (current-column))
+      (setq cc (current-column))
       (setq o (make-overlay (match-beginning 0) (match-beginning 0)))
       (overlay-put o 'fci t)
       (cond 
-			 ((< cc fci-limit)
-				(overlay-put o 'before-string fci-pre-limit-string))
-			 ((= cc fci-limit)
+       ((< cc fci-limit)
+        (overlay-put o 'before-string fci-pre-limit-string))
+       ((= cc fci-limit)
         (overlay-put o 'before-string fci-at-limit-string))
-				(t
-				 (overlay-put o 'before-string fci-post-limit-string)))
+        (t
+         (overlay-put o 'before-string fci-post-limit-string)))
       (goto-char (match-end 0)))))
 
 (defun fci-get-col (pos)

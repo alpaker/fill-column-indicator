@@ -3,7 +3,7 @@
 ;; Copyright (c) 2011 Alp Aker
 
 ;; Author: Alp Aker <alp.tekin.aker@gmail.com>
-;; Version: 1.54
+;; Version: 1.55
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or
@@ -114,17 +114,13 @@
 
 ;; o When portions of a buffer are invisible, such as when outline mode is
 ;;   used to hide certain lines, the fill-column rule is hidden as
-;;   well.  (Working around this would require either (a) rewriting a large
-;;   part of xdisp.c, or (b) advising every function that might hide part of
-;;   a buffer.)
+;;   well.  
 
-;; o Fci-mode is generally fast:  Displaying the rule should be O(n) in the
-;;   number of lines in a buffer, with a low constant.  (Activating the mode
-;;   in a buffer with 30k lines should take under 0.5 sec on a modern
-;;   machine.)  However, the presence of multibyte characters can slow down
-;;   its performance, in proportion to the number of multibyte characters in
-;;   the buffer.  (This problem stems from the fact that the performance of
-;;   the primitive overlay commands is degraded by multibyte characters.)
+;; o Fci-mode is generally fast.  However, the presence of multibyte
+;;   characters can dramatically slow its performance, in proportion to the
+;;   number of multibyte characters in the buffer. (The primitive overlay
+;;   commands seem to perform much more slowly in the presence of multibyte
+;;   characters.) This problem is mainly manifest when activating the mode.
 
 ;; o An issue specifc to the Mac OS X (NextStep) port, versions 23.0-23.2: On
 ;;   graphical displays, the cursor will disappear when positioned directly
@@ -132,13 +128,9 @@
 ;;   of a line that extends up to but not past the fill-column).  The best
 ;;   way to deal with this is to upgrade to 23.3 or to 24 (or downgrade to
 ;;   22).  If that isn't practical, a fix is available via the mini-package
-;;   fci-osx-23-fix.el, which can be downloaded from either:
+;;   fci-osx-23-fix.el, which can be downloaded from:
 ;;
 ;;     github.com/alpaker/Fill-Column-Indicator
-;;
-;;   or
-;;
-;;     emacswiki.org/emacs/FillColumnIndicator
 ;;
 ;;  Directions for its use are given in the file header.
 
@@ -146,6 +138,8 @@
 ;; ====
 
 ;; o Accomodate non-nil values of `hl-line-sticky-flag' and similar cases.
+
+;; o Accomodate linum-mode more robustly.
 
 ;;; Code:
 
@@ -162,7 +156,9 @@
   (defun fci-character-p (c)
     (and (wholenump c)
          (/= 0 c)
-         (<= c #x3FFFFF))))
+				 ;; MAX_CHAR in v22 is (0x1F << 14).  We don't worry about generic
+				 ;; chars.
+         (< c 507904))))
 
 ;; Needed for v22.
 (if (fboundp 'daemonp)
@@ -331,16 +327,14 @@ Leaving this option set to the default value is recommended."
 
 ;; Character used for "fake" eol indications when fci-mode is running
 ;; concurrently with a mode that sets the display-table entry for newlines to
-;; non-nil (typically whitespace mode).  This character is the first
-;; character in the Private Use Area of the Unicode BMP.  On v22, given in
-;; mule-unicode encording; on later versions, given in utf-8.
-(defconst fci-eol-char (if (= 22 emacs-major-version) 315425 #xE000))
+;; non-nil (typically whitespace mode).  This is the first character in the
+;; Private Use Area of the Unicode BMP.
+(defconst fci-eol-char ?\uE000)
 
 ;; Character used to create the appearance whitespace in certain edge cases
 ;; without being treated syntactically as whitespace by, e.g., whitespace
-;; mode.  On v22, given in mule-unicode encording; on later versions, given
-;; in utf-8.
-(defconst fci-padding-char (if (= 22 emacs-major-version) 315426 #xE001))
+;; mode.
+(defconst fci-padding-char ?\uE001)
 
 ;; The display spec used in overlay before strings to pad out the rule to the
 ;; fill-column.
@@ -351,9 +345,9 @@ Leaving this option set to the default value is recommended."
 
 ;; Hooks we add to.
 (defconst fci-hook-assignments
-  (append `((after-change-functions . ,#'fci-after-change-function)
-            (post-command-hook . ,#'fci-post-command-check)
-            (change-major-mode-hook . ,#'(lambda () (fci-mode -1))))))
+  '((after-change-functions . fci-after-change-function)
+		(post-command-hook . fci-post-command-check)
+		(change-major-mode-hook . (lambda () (fci-mode -1)))))
 
 ;;; ---------------------------------------------------------------------
 ;;; Mode Definition
@@ -377,20 +371,22 @@ troubleshooting.)"
 
   (if fci-mode
   ;; Enabling.
-  (progn
-    (fci-process-display-table)
-    (setq fci-column fill-column
-          fci-tab-width tab-width
-          fci-limit (if fci-newline-sentinel
-                        (1+ (- fill-column (length fci-saved-eol)))
-                      fill-column))
-    (fci-make-before-strings)
-    ;; In case we were already in fci-mode and are resetting the
-    ;; indicator, clear out any existing overlays.
-    (when fci-local-vars-set
-      (fci-delete-overlays-buffer))
-    (fci-set-local-vars)
-    (fci-put-overlays-buffer))
+			(condition-case nil
+					(progn
+						(fci-process-display-table)
+						(setq fci-column fill-column
+									fci-tab-width tab-width
+									fci-limit (if fci-newline-sentinel
+																(1+ (- fill-column (length fci-saved-eol)))
+															fill-column))
+						(fci-make-before-strings)
+						;; In case we were already in fci-mode and are resetting the
+						;; indicator, clear out any existing overlays.
+						(when fci-local-vars-set
+							(fci-delete-overlays-buffer))
+						(fci-set-local-vars)
+						(fci-put-overlays-buffer))
+					(error (fci-mode -1)))
 
   ;; Disabling.
   (fci-delete-overlays-buffer)
@@ -461,13 +457,14 @@ troubleshooting.)"
 (defun fci-restore-local-vars ()
   (dolist (hook fci-hook-assignments)
     (remove-hook (car hook) (cdr hook) t))
-  (when (and fci-handle-line-move-visual
-             (boundp 'line-move-visual))
-    (setq line-move-visual fci-saved-line-move-visual
-          fci-saved-line-move-visual nil))
-  (when fci-handle-truncate-lines
-    (setq truncate-lines fci-saved-truncate-lines
-          fci-saved-truncate-lines nil))
+	(when fci-local-vars-set
+		(when (and fci-handle-line-move-visual
+							 (boundp 'line-move-visual))
+			(setq line-move-visual fci-saved-line-move-visual
+						fci-saved-line-move-visual nil))
+		(when fci-handle-truncate-lines
+			(setq truncate-lines fci-saved-truncate-lines
+						fci-saved-truncate-lines nil)))
   (setq fci-local-vars-set nil
         fci-daemon-init-on-tty nil))
 
@@ -643,11 +640,11 @@ troubleshooting.)"
       (overlay-put o 'fci t)
       (cond 
        ((< cc fci-limit)
-        (overlay-put o 'before-string fci-pre-limit-string))
+        (overlay-put o 'after-string fci-pre-limit-string))
        ((= cc fci-limit)
-        (overlay-put o 'before-string fci-at-limit-string))
+        (overlay-put o 'after-string fci-at-limit-string))
         (t
-         (overlay-put o 'before-string fci-post-limit-string)))
+         (overlay-put o 'after-string fci-post-limit-string)))
       (goto-char (match-end 0)))))
 
 (defun fci-get-col (pos)
@@ -701,14 +698,6 @@ troubleshooting.)"
 ;;; Workarounds
 ;;; ---------------------------------------------------------------------
 
-(defadvice vertical-motion (around fci)
-  (if fci-mode
-      (let (truncate-lines)
-        ad-do-it)
-    ad-do-it))
-
-(ad-activate 'vertical-motion)
-
 (defun fci-post-command-check ()
   (cond
    ((and fci-daemon-init-on-tty (display-graphic-p))
@@ -732,4 +721,3 @@ troubleshooting.)"
 (provide 'fill-column-indicator)
 
 ;;; fill-column-indicator.el ends here
-

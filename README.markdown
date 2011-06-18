@@ -10,7 +10,7 @@ Installation and Usage
 
 Put the package file in your load path and put
 
-> (require 'fill-column-indicator)
+`(require 'fill-column-indicator)`
 
 in your .emacs.
 

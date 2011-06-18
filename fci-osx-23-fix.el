@@ -3,7 +3,7 @@
 ;; Copyright (c) 2011 Alp Aker 
 
 ;; Author: Alp Aker <alp.tekin.aker@gmail.com>
-;; Version: 1.53
+;; Version: 1.54
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or
@@ -38,21 +38,21 @@
 (defun fci-nextstep-23-hack ()
   (when fci-nextstep-23-hack-cache 
     (overlay-put fci-nextstep-23-hack-cache 
-                 'before-string
-                 (overlay-get fci-nextstep-23-hack-cache 'fci-before-string))
+                 'after-string
+                 (overlay-get fci-nextstep-23-hack-cache 'fci-after-string))
     (setq fci-nextstep-23-hack-cache nil))
   (when (and (not fci-newline-sentinel)
              (= (current-column) fci-limit)
              (setq fci-nextstep-23-hack-cache (fci-overlay-at (point))))
-    (overlay-put fci-nextstep-23-hack-cache 'fci-before-string
-                 (overlay-get fci-nextstep-23-hack-cache 'before-string))
-    (overlay-put fci-nextstep-23-hack-cache 'before-string nil)))
+    (overlay-put fci-nextstep-23-hack-cache 'fci-after-string
+                 (overlay-get fci-nextstep-23-hack-cache 'after-string))
+    (overlay-put fci-nextstep-23-hack-cache 'after-string nil)))
 
 (defun fci-overlay-at (pos)
   (car (delq nil (mapcar #'(lambda (o) (if (overlay-get o 'fci) o)) 
                          (overlays-in pos (line-end-position))))))
 
 (add-to-list 'fci-hook-assignments 
-             `(post-command-hook . ,#'fci-nextstep-23-hack))
+             '(post-command-hook . fci-nextstep-23-hack))
 
 (provide 'fci-osx-23-fix)

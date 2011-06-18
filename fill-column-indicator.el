@@ -371,7 +371,7 @@ troubleshooting.)"
 
   (if fci-mode
       ;; Enabling.
-      (condition-case nil
+      (condition-case the-error
           (progn
             (fci-process-display-table)
             (setq fci-column fill-column
@@ -386,7 +386,8 @@ troubleshooting.)"
               (fci-delete-overlays-buffer))
             (fci-set-local-vars)
             (fci-put-overlays-buffer))
-        (error (fci-mode -1)))
+        (error (fci-mode -1)
+               (signal (car the-error) (cdr the-error))))
 
     ;; Disabling.
     (fci-delete-overlays-buffer)
@@ -526,7 +527,6 @@ troubleshooting.)"
                   'face
                   ;; Make sure we don't pick up weight or slant from font-lock.
                   `(:foreground ,color :weight normal :slant normal))
-    (fci-mode -1)
     (error "Value of `fci-rule-character' must be a character")))
 
 (defun fci-make-rule-spec (rule-width color)
@@ -540,10 +540,13 @@ troubleshooting.)"
    ((eq fci-rule-image-format 'xpm)
     (fci-make-xpm-spec rule-width color))
    (t
-    (fci-mode -1)
     (error "Unrecognized value of `fci-rule-image-format'"))))
 
 (defun fci-get-rule-color ()
+  (if fci-rule-color
+      (if (color-defined-p fci-rule-color)
+          fci-rule-color
+        (error "Value of `fci-rule-color' is not a recognized color"))
   (let ((light-bg (eq (frame-parameter (selected-frame) 'background-mode)
                       'light))
         (grays (display-grayscale-p))
@@ -555,7 +558,8 @@ troubleshooting.)"
      ((and color (> 3 planes)) "lightgray")
      ((and color (> 2 planes)) "yellow")
      (light-bg "black")
-     (t "white"))))
+     (t "white")))))
+
 
 ;; The following three functions each create an image descriptor for the rule
 ;; bitmap.

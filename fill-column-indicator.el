@@ -156,8 +156,8 @@
   (defun fci-character-p (c)
     (and (wholenump c)
          (/= 0 c)
-				 ;; MAX_CHAR in v22 is (0x1F << 14).  We don't worry about generic
-				 ;; chars.
+         ;; MAX_CHAR in v22 is (0x1F << 14).  We don't worry about
+         ;; generic chars.
          (< c 507904))))
 
 ;; Needed for v22.
@@ -171,21 +171,21 @@
 ;;; ---------------------------------------------------------------------
 
 (defgroup fill-column-indicator nil
- "Graphically indicate the fill-column."
- :tag "Fill-Column Indicator"
- :group 'convenience
- :group 'fill)
+  "Graphically indicate the fill-column."
+  :tag "Fill-Column Indicator"
+  :group 'convenience
+  :group 'fill)
 
 (defcustom fci-rule-color nil
- "Color used to draw the fill-column rule.
+  "Color used to draw the fill-column rule.
 If nil, fill-column-indicator tries to make a sensible choice.
 
 Changes to this variable do not take effect until the mode
 function `fci-mode' is run."
- :group 'fill-column-indicator
- :tag "Fill-column rule color"
- :type '(choice (const :tag "Let fci-mode choose" nil)
-                (color :tag "Specify a color")))
+  :group 'fill-column-indicator
+  :tag "Fill-column rule color"
+  :type '(choice (const :tag "Let fci-mode choose" nil)
+                 (color :tag "Specify a color")))
 
 ;; We should be using :validate instead of :match, but that seems not to
 ;; work with defcustom widgets.
@@ -235,26 +235,26 @@ function `fci-mode' is run."
   :type 'boolean)
 
 (defcustom fci-handle-line-move-visual (< 22 emacs-major-version)
- "Whether fci-mode should set line-move-visual to nil while enabled.
+  "Whether fci-mode should set line-move-visual to nil while enabled.
 If non-nil, fci-mode will set line-move-visual to nil in buffers
 in which it is enabled, and restore t to its previous value when
 disabled.
 
 Leaving this option set to the default value is recommended."
- :group 'fill-column-indicator
- :tag "Locally set line-move-visual to nil during fci-mode"
- :type 'boolean)
+  :group 'fill-column-indicator
+  :tag "Locally set line-move-visual to nil during fci-mode"
+  :type 'boolean)
 
 (defcustom fci-handle-truncate-lines t
- "Whether fci-mode should set truncate-lines to t while enabled.
+  "Whether fci-mode should set truncate-lines to t while enabled.
 If non-nil, fci-mode will set truncate-lines to t in buffers in
 which it is enabled, and restore it to its previous value when
 disabled.
 
 Leaving this option set to the default value is recommended."
- :group 'fill-column-indicator
- :tag "Locally set truncate-lines to t during fci-mode"
- :type 'boolean)
+  :group 'fill-column-indicator
+  :tag "Locally set truncate-lines to t during fci-mode"
+  :type 'boolean)
 
 ;;; ---------------------------------------------------------------------
 ;;; Internal Variables and Constants
@@ -299,13 +299,13 @@ Leaving this option set to the default value is recommended."
 ;; not always equal to fill-column).
 (defvar fci-limit nil)
 
-;; Overlay before string used for newlines that fall before fci-limit.
+;; Overlay string used for newlines that fall before fci-limit.
 (defvar fci-pre-limit-string nil)
 
-;; Overlay before string used for newlines that fall at fci-limit.
+;; Overlay string used for newlines that fall at fci-limit.
 (defvar fci-at-limit-string nil)
 
-;; Overlay before string used for newlines that fall at fci-limit.
+;; Overlay string used for newlines that fall after fci-limit.
 (defvar fci-post-limit-string nil)
 
 ;; The preceding internal variables need to be buffer local.
@@ -346,8 +346,8 @@ Leaving this option set to the default value is recommended."
 ;; Hooks we add to.
 (defconst fci-hook-assignments
   '((after-change-functions . fci-after-change-function)
-		(post-command-hook . fci-post-command-check)
-		(change-major-mode-hook . (lambda () (fci-mode -1)))))
+    (post-command-hook . fci-post-command-check)
+    (change-major-mode-hook . (lambda () (fci-mode -1)))))
 
 ;;; ---------------------------------------------------------------------
 ;;; Mode Definition
@@ -370,34 +370,34 @@ troubleshooting.)"
   nil nil nil
 
   (if fci-mode
-  ;; Enabling.
-			(condition-case nil
-					(progn
-						(fci-process-display-table)
-						(setq fci-column fill-column
-									fci-tab-width tab-width
-									fci-limit (if fci-newline-sentinel
-																(1+ (- fill-column (length fci-saved-eol)))
-															fill-column))
-						(fci-make-before-strings)
-						;; In case we were already in fci-mode and are resetting the
-						;; indicator, clear out any existing overlays.
-						(when fci-local-vars-set
-							(fci-delete-overlays-buffer))
-						(fci-set-local-vars)
-						(fci-put-overlays-buffer))
-					(error (fci-mode -1)))
+      ;; Enabling.
+      (condition-case nil
+          (progn
+            (fci-process-display-table)
+            (setq fci-column fill-column
+                  fci-tab-width tab-width
+                  fci-limit (if fci-newline-sentinel
+                                (1+ (- fill-column (length fci-saved-eol)))
+                              fill-column))
+            (fci-make-before-strings)
+            ;; In case we were already in fci-mode and are resetting the
+            ;; indicator, clear out any existing overlays.
+            (when fci-local-vars-set
+              (fci-delete-overlays-buffer))
+            (fci-set-local-vars)
+            (fci-put-overlays-buffer))
+        (error (fci-mode -1)))
 
-  ;; Disabling.
-  (fci-delete-overlays-buffer)
-  (fci-restore-display-table)
-  (fci-restore-local-vars)
-  (setq fci-column nil
-        fci-limit nil
-        fci-tab-width nil
-        fci-pre-limit-string nil
-        fci-at-limit-string nil
-        fci-post-limit-string nil)))
+    ;; Disabling.
+    (fci-delete-overlays-buffer)
+    (fci-restore-display-table)
+    (fci-restore-local-vars)
+    (setq fci-column nil
+          fci-limit nil
+          fci-tab-width nil
+          fci-pre-limit-string nil
+          fci-at-limit-string nil
+          fci-post-limit-string nil)))
 
 ;;; ---------------------------------------------------------------------
 ;;; Initialization and Clean Up: Display Table
@@ -443,10 +443,10 @@ troubleshooting.)"
   (unless fci-local-vars-set
     (dolist (hook fci-hook-assignments)
       (add-hook (car hook) (cdr hook) nil t))
-     (when (and fci-handle-line-move-visual
-                (boundp 'line-move-visual))
-       (setq fci-saved-line-move-visual line-move-visual)
-       (set (make-local-variable 'line-move-visual) nil))
+    (when (and fci-handle-line-move-visual
+               (boundp 'line-move-visual))
+      (setq fci-saved-line-move-visual line-move-visual)
+      (set (make-local-variable 'line-move-visual) nil))
     (when fci-handle-truncate-lines
       (setq fci-saved-truncate-lines truncate-lines)
       (set (make-local-variable 'truncate-lines) t))
@@ -457,14 +457,14 @@ troubleshooting.)"
 (defun fci-restore-local-vars ()
   (dolist (hook fci-hook-assignments)
     (remove-hook (car hook) (cdr hook) t))
-	(when fci-local-vars-set
-		(when (and fci-handle-line-move-visual
-							 (boundp 'line-move-visual))
-			(setq line-move-visual fci-saved-line-move-visual
-						fci-saved-line-move-visual nil))
-		(when fci-handle-truncate-lines
-			(setq truncate-lines fci-saved-truncate-lines
-						fci-saved-truncate-lines nil)))
+  (when fci-local-vars-set
+    (when (and fci-handle-line-move-visual
+               (boundp 'line-move-visual))
+      (setq line-move-visual fci-saved-line-move-visual
+            fci-saved-line-move-visual nil))
+    (when fci-handle-truncate-lines
+      (setq truncate-lines fci-saved-truncate-lines
+            fci-saved-truncate-lines nil)))
   (setq fci-local-vars-set nil
         fci-daemon-init-on-tty nil))
 
@@ -643,8 +643,8 @@ troubleshooting.)"
         (overlay-put o 'after-string fci-pre-limit-string))
        ((= cc fci-limit)
         (overlay-put o 'after-string fci-at-limit-string))
-        (t
-         (overlay-put o 'after-string fci-post-limit-string)))
+       (t
+        (overlay-put o 'after-string fci-post-limit-string)))
       (goto-char (match-end 0)))))
 
 (defun fci-get-col (pos)

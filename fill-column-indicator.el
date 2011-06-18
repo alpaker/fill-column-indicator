@@ -3,7 +3,7 @@
 ;; Copyright (c) 2011 Alp Aker
 
 ;; Author: Alp Aker <alp.tekin.aker@gmail.com>
-;; Version: 1.55
+;; Version: 1.56
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or
@@ -355,14 +355,13 @@ Leaving this option set to the default value is recommended."
 
 (define-minor-mode fci-mode
   "Toggle fci mode on and off.
-Fci-mode indicates the location of the fill column, either by
-shading the area of the window past the fill column or by
-drawing a thin line (a `rule') at the fill column.
+Fci-mode indicates the location of the fill column by drawing a
+thin line (a `rule') at the fill column.
 
 With prefix ARG, turn fci-mode on if and only if ARG is positive.
 
 The following options control the appearance of the fill-column
-indicator: ``fci-rule-width', `fci-rule-color', and
+indicator: `fci-rule-width', `fci-rule-color', and
 `fci-rule-character'.  For further options, see the Customization
 menu or the package file.  (See the latter for tips on
 troubleshooting.)"
@@ -371,7 +370,7 @@ troubleshooting.)"
 
   (if fci-mode
       ;; Enabling.
-      (condition-case the-error
+      (condition-case error
           (progn
             (fci-process-display-table)
             (setq fci-column fill-column
@@ -387,7 +386,7 @@ troubleshooting.)"
             (fci-set-local-vars)
             (fci-put-overlays-buffer))
         (error (fci-mode -1)
-               (signal (car the-error) (cdr the-error))))
+               (signal (car error) (cdr error))))
 
     ;; Disabling.
     (fci-delete-overlays-buffer)
@@ -560,10 +559,6 @@ troubleshooting.)"
      (light-bg "black")
      (t "white")))))
 
-
-;; The following three functions each create an image descriptor for the rule
-;; bitmap.
-
 (defun fci-make-xbm-spec (rule-width color)
   (let* ((fcw (frame-char-width))
          (img-width (+ fcw (- 8 (% fcw 8))))
@@ -639,8 +634,8 @@ troubleshooting.)"
   (let (o cc)
     (while (search-forward "\n" end t)
       (goto-char (match-beginning 0))
-      (setq cc (current-column))
-      (setq o (make-overlay (match-beginning 0) (match-beginning 0)))
+      (setq cc (current-column)
+						o (make-overlay (match-beginning 0) (match-beginning 0)))
       (overlay-put o 'fci t)
       (cond 
        ((< cc fci-limit)

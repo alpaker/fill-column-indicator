@@ -3,7 +3,7 @@
 ;; Copyright (c) 2011 Alp Aker 
 
 ;; Author: Alp Aker <alp.tekin.aker@gmail.com>
-;; Version: 1.54
+;; Version: 1.61
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or
@@ -34,6 +34,7 @@
 (require 'fill-column-indicator)
 
 (defvar fci-nextstep-23-hack-cache nil)
+(make-variable-buffer-local 'fci-nextstep-23-hack-cache)
 
 (defun fci-nextstep-23-hack ()
   (when fci-nextstep-23-hack-cache 
@@ -43,14 +44,13 @@
     (setq fci-nextstep-23-hack-cache nil))
   (when (and (not fci-newline-sentinel)
              (= (current-column) fci-limit)
-             (setq fci-nextstep-23-hack-cache (fci-overlay-at (point))))
+						 (setq fci-nextstep-23-hack-cache (fci-overlay-at-point)))
     (overlay-put fci-nextstep-23-hack-cache 'fci-after-string
                  (overlay-get fci-nextstep-23-hack-cache 'after-string))
     (overlay-put fci-nextstep-23-hack-cache 'after-string nil)))
 
-(defun fci-overlay-at (pos)
-  (car (delq nil (mapcar #'(lambda (o) (if (overlay-get o 'fci) o)) 
-                         (overlays-in pos (line-end-position))))))
+(defun fci-overlay-at-point ()
+	(car (fci-get-overlays-region (point) (point))))
 
 (add-to-list 'fci-hook-assignments 
              '(post-command-hook . fci-nextstep-23-hack))

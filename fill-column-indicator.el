@@ -3,7 +3,7 @@
 ;; Copyright (c) 2011 Alp Aker
 
 ;; Author: Alp Aker <alp.tekin.aker@gmail.com>
-;; Version: 1.61
+;; Version: 1.62
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or
@@ -347,16 +347,29 @@ troubleshooting.)"
 
   (if fci-mode
       ;; Enabling.
-          (progn
-            (fci-process-display-table)
-            (setq fci-column fill-column
-                  fci-tab-width tab-width
-                  fci-limit (if fci-newline-sentinel
-                                (1+ (- fill-column (length fci-saved-eol)))
+			(condition-case error
+					(progn
+						(unless (memq fci-rule-image-format '(xpm xbm pbm))
+							(error "Unrecognized value of `fci-rule-image-format'"))
+						(unless (color-defined-p fci-rule-color)
+							(error "Value of `fci-rule-color' must be a color name"))
+						(when (and fci-rule-character-color
+											 (not (color-defined-p fci-rule-character-color)))
+							(error "Value of `fci-rule-character-color' must be a color name"))
+						(unless (fci-character-p fci-rule-character)
+							(error "Value of `fci-rule-character' must be a character"))
+						(fci-process-display-table)
+						(setq fci-column fill-column
+									fci-tab-width tab-width
+									fci-limit (if fci-newline-sentinel
+																(1+ (- fill-column (length fci-saved-eol)))
                               fill-column))
             (fci-make-overlay-strings)
             (fci-set-local-vars)
             (fci-global-update))
+				(error 
+				 (fci-mode 0)
+				 (signal (car error) (cdr error))))
 
     ;; Disabling.
     (fci-restore-display-table)
@@ -507,37 +520,27 @@ troubleshooting.)"
 
 (defun fci-make-rule-string ()
 	"Return a string for drawing the fill-column rule."
-	(let ((color (if fci-rule-character-color
-									 (if (color-defined-p fci-rule-character-color)
-											 fci-rule-character-color
-										 (error "Value of `fci-rule-character-color' is not a recognized color"))
-								 fci-rule-color)))
-		(if (fci-character-p fci-rule-character)
-				;; Make sure we don't pick up weight or slant from font-lock.
-				(propertize (char-to-string fci-rule-character)
-										'face `
-										(:foreground ,color :weight normal :slant normal))
-			(error "Value of `fci-rule-character' must be a character"))))
+	(let ((color (or fci-rule-character-color
+									 fci-rule-color)))
+		;; Make sure we don't pick up weight or slant from font-lock.
+		(propertize (char-to-string fci-rule-character)
+								'face `
+								(:foreground ,color :weight normal :slant normal))))
 
 (defun fci-make-rule-img ()
-	"Return an image descriptor for the fill-column rule.
-If `fci-always-use-textual-rule' is non-nil, or if this Emacs
-instance is not connected to a display that can show images, return nil."
-  (unless (and fci-always-use-textual-rule
-							 (display-images-p))
-		(unless (color-defined-p fci-rule-color)
-			(error "Value of `fci-rule-color' is not a recognized color"))
-		(setq fci-char-width (frame-char-width)
-					fci-char-height (frame-char-height))
-		(cond
-		 ((eq fci-rule-image-format 'xbm)
-			(fci-make-xbm-img))
-		 ((eq fci-rule-image-format 'pbm)
-			(fci-make-pbm-img))
-		 ((eq fci-rule-image-format 'xpm)
-			(fci-make-xpm-img))
-		 (t
-			(error "Unrecognized value of `fci-rule-image-format'")))))
+	"Return an image descriptor for the fill-column rule."
+  (unless fci-always-use-textual-rule
+		(unless fci-char-width
+			(setq fci-char-width (frame-char-width)
+						fci-char-height (frame-char-height)))
+		(when (/= fci-char-width 1)
+			(cond
+			 ((eq fci-rule-image-format 'xbm)
+				(fci-make-xbm-img))
+			 ((eq fci-rule-image-format 'pbm)
+				(fci-make-pbm-img))
+			 ((eq fci-rule-image-format 'xpm)
+				(fci-make-xpm-img))))))
 
 (defun fci-make-xbm-img ()
 	"Return an image descriptor for the fill-column rule in XBM format."
@@ -759,8 +762,10 @@ instance is not connected to a display that can show images, return nil."
 							(equal (aref buffer-display-table 10) fci-newline-sentinel)))
     (setq fci-display-table-processed nil)
     (fci-mode 1))
-	 ((not (and (= (frame-char-width) fci-char-width)
-							(= (frame-char-height) fci-char-height)))
+	 ((and (< 1 (frame-char-width))
+				 (not (and (= (frame-char-width) fci-char-width)
+									 (= (frame-char-height) fci-char-height))))
+		(setq fci-char-width nil)
     (fci-mode 1))
    ((not (and (= fill-column fci-column)
 							(= tab-width fci-tab-width)))

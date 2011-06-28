@@ -501,8 +501,8 @@ file.  (See the latter for tips on troubleshooting.)"
          (eol-str (char-to-string fci-eol-char))
          (end-cap (propertize blank 'display '(space :width 0)))
          (eol (propertize blank
-													'cursor 1
-													'display (propertize eol-str 'cursor 1)))
+                          'cursor 1
+                          'display (propertize eol-str 'cursor 1)))
          (padding (propertize blank 'display fci-padding-display))
          (before-rule (fci-rule-display blank img str t))
          (at-rule (fci-rule-display blank img str fci-newline-sentinel))
@@ -679,24 +679,24 @@ file.  (See the latter for tips on troubleshooting.)"
       (when delenda
         (mapc #'delete-overlay delenda)
         (let ((lossage 0)
-							(max-end 0)
+              (max-end 0)
               win-end)
-					(save-excursion
-						(goto-char start)
-						(while (search-forward "\n" end t)
-							(setq lossage (1+ lossage))))
-					(dolist (win fci-buffer-windows)
-						;; Do not ask for an updated value of window-end.
-						(setq win-end (window-end win))
-						(when (and (< 0 (- (min win-end end) 
-															 (max (window-start win) start)))
-											 (< max-end win-end))
-							(setq max-end win-end)))
-					(unless (= max-end (point-max))
-						(fci-redraw-region max-end 
-															 (save-excursion 
-																 (goto-char max-end)
-																 (line-beginning-position lossage)) nil)))))))
+          (save-excursion
+            (goto-char start)
+            (while (search-forward "\n" end t)
+              (setq lossage (1+ lossage))))
+          (dolist (win fci-buffer-windows)
+            ;; Do not ask for an updated value of window-end.
+            (setq win-end (window-end win))
+            (when (and (< 0 (- (min win-end end) 
+                               (max (window-start win) start)))
+                       (< max-end win-end))
+              (setq max-end win-end)))
+          (unless (= max-end (point-max))
+            (fci-redraw-region max-end 
+                               (save-excursion 
+                                 (goto-char max-end)
+                                 (line-beginning-position lossage)) nil)))))))
 
 ;; If N windows display the buffer, then window-configuration-change-hook
 ;; calls this function N times.  Since we only need to run the window update
@@ -711,7 +711,7 @@ file.  (See the latter for tips on troubleshooting.)"
   (remove-hook 'post-command-hook #'fci-full-update t)
   (overlay-recenter (point-max))
   (setq fci-buffer-windows 
-				(get-buffer-window-list (current-buffer) 'no-minibuf t))
+        (get-buffer-window-list (current-buffer) 'no-minibuf t))
   (fci-delete-unneeded)
   (let (start end)
     (fci-sanitize-actions

@@ -3,7 +3,7 @@
 ;; Copyright (c) 2011 Alp Aker
 
 ;; Author: Alp Aker <alp.tekin.aker@gmail.com>
-;; Version: 1.63
+;; Version: 1.64
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or
@@ -367,7 +367,7 @@ file.  (See the latter for tips on troubleshooting.)"
             (fci-make-overlay-strings)
             (fci-set-local-vars)
             (fci-full-update))
-        (error 
+        (error
          (fci-mode 0)
          (signal (car error) (cdr error))))
 
@@ -474,7 +474,7 @@ file.  (See the latter for tips on troubleshooting.)"
 
 ;; Generate the display spec for the rule.  Basic idea is to display the
 ;; textual rule if the display doesn't support images and the graphical rule
-;; if it does.  But in both cases, only display if no other overlay wants to
+;; if it does.  But in both cases, only display if no other overlay wants to 
 ;; fill the background of this region. 
 (defun fci-rule-display (blank img str pre)
   "Generate a display specification for a fill-column rule overlay string."
@@ -500,7 +500,7 @@ file.  (See the latter for tips on troubleshooting.)"
          (blank (char-to-string fci-padding-char))
          (eol-str (char-to-string fci-eol-char))
          (end-cap (propertize blank 'display '(space :width 0)))
-         (eol (propertize blank
+         (eol (propertize eol-str
                           'cursor 1
                           'display (propertize eol-str 'cursor 1)))
          (padding (propertize blank 'display fci-padding-display))
@@ -521,8 +521,7 @@ file.  (See the latter for tips on troubleshooting.)"
                    fci-rule-color)))
     ;; Make sure we don't pick up weight or slant from font-lock.
     (propertize (char-to-string fci-rule-character)
-                'face `
-                (:foreground ,color :weight normal :slant normal))))
+                'face `(:foreground ,color :weight normal :slant normal))))
 
 (defun fci-make-rule-img ()
   "Return an image descriptor for the fill-column rule."
@@ -769,7 +768,7 @@ file.  (See the latter for tips on troubleshooting.)"
     (fci-mode 1))
    ((not (and (= fill-column fci-column)
               (= tab-width fci-tab-width)))
-    (fci-full-update))
+    (fci-mode 1))
    ((and (< 0 (window-hscroll))
          auto-hscroll-mode
          (<= (current-column) (window-hscroll)))

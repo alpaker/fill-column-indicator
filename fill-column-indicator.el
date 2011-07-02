@@ -42,16 +42,16 @@
 ;; Configuration
 ;; =============
 
-;; On displays that can show images, the fill-column rule is drawn using a
-;; bitmap.  Its color is controlled by the variable `fci-rule-color'; its
+;; On graphical displays the fill-column rule is drawn using a bitmap
+;; image.  Its color is controlled by the variable `fci-rule-color', whose
 ;; value can be any valid color name.  The rule's width in pixels is
 ;; determined by the variable `fci-rule-width'; the default value is 2.
 
-;; The image formats fci-mode can use are XPM, PBM, and XBM.  By default it
-;; uses XPM images if Emacs has been compiled with the appropriate library;
-;; if not, it uses PBM images, which are natively supported.  You can specify
-;; a particular format by setting `fci-rule-image-format' to either 'xpm,
-;; 'xpm, or 'xbm.
+;; The image formats fci-mode can use are XPM, PBM, and XBM.  If Emacs has
+;; been compiled with the appropriate library it uses XPM images by default;
+;; if not it uses PBM images, which are natively supported.  You can specify
+;; a particular format by setting `fci-rule-image-format' to either xpm,
+;; xpm, or xbm.
 
 ;; On character terminals the rule is drawn using the character specified by
 ;; `fci-rule-character'; the default is `|' (ascii 124).  If
@@ -62,49 +62,52 @@
 ;; If you'd like the rule to be drawn using fci-rule-character even on
 ;; graphical displays, set `fci-always-use-textual-rule' to a non-nil value.
 
+;; These variables (as well as those in the next section) can be given
+;; buffer-local bindings.
+
 ;; Other Options
 ;; =============
 
-;; When `truncate-lines' is nil, the effect of drawing a fill-column
-;; indicator is very odd looking. Indeed, in a window with continuation
-;; lines, it makes little sense to indicate the position of the fill column
-;; relative to the window edge (think about what it would mean to talk about
-;; "the" location of the fill column in that case).  For this reason,
-;; fci-mode sets truncate-lines to t in buffers in which it is enabled and
-;; restores it to its previous value when disabled.  You can turn this
-;; feature off by setting `fci-handle-truncate-lines' to nil.
+;; When `truncate-lines' is nil, the effect of drawing a fill-column rule is
+;; very odd looking. Indeed, it makes little sense to use a rule to indicate
+;; the position of the fill column in that case (the positions at which the
+;; fill column falls in the visual display space won't in general be
+;; collinear).  For this reason, fci-mode sets truncate-lines to t in buffers
+;; in which it is enabled and restores it to its previous value when
+;; disabled.  You can turn this feature off by setting
+;; `fci-handle-truncate-lines' to nil.
 
 ;; If `line-move-visual' is t, then vertical navigation can behave oddly in
 ;; several edge cases while fci-mode is enabled (this is due to a bug in C
-;; code).  Accordingly, fci-mode locally sets line-move-visual to nil when
-;; enabled and restores it when disabled.  This can be suppressed by setting
-;; `fci-handle-line-move-visual' to nil.  (But you shouldn't want to do
-;; this.  There's no reason to use line-move-visual if truncate-lines is t,
-;; and it doesn't make sense to use something like fci-mode when
-;; truncate-lines is nil.)
+;; code).  Accordingly, fci-mode sets line-move-visual to nil in buffers in
+;; which it is enabled and restores it to its previous value when
+;; disabled.  This can be suppressed by setting `fci-handle-line-move-visual'
+;; to nil.  (But you shouldn't want to do this.  There's no reason to use
+;; line-move-visual if truncate-lines is t, and it doesn't make sense to use
+;; something like fci-mode when truncate-lines is nil.)
+
+;; Fci-mode needs free use of two characters (specifically, it needs the use
+;; of two characters whose display table entries it can change
+;; arbitrarily).  By default, it uses the first two characters of the Private
+;; Use Area of the Unicode BMP, viz. U+E000 and U+E001.  If you need to use
+;; those characters for some other purpose, set `fci-eol-char' and
+;; `fci-blank-char' to different values.
 
 ;; Troubleshooting
 ;; ===============
 
-;; o If the fill-column rule is misaligned on some lines but otherwise looks
-;;   normal, then you're most likely not displaying the buffer contents with
-;;   a monospaced font.  Check whether the lines in question contain
-;;   non-ascii characters that are wider or shorter than the normal character
-;;   width.  Also, be aware that certain font-lock themes set some faces so
-;;   that they look monospaced but aren't quite so.
+;; o Fci-mode is intended to be used with monospaced fonts.  If you're using
+;;   a monospaced font and the fill-column rule is missing or misaligned on a
+;;   few lines but otherwise appears normal, then most likely (a) there are
+;;   non-ascii characters on those lines that are being displayed using a
+;;   non-monospaced font, or (b) your font-lock settings use bold or italics
+;;   and those font variants aren't monospaced.
 
-;; o Although the XBM format is natively supported by Emacs, the
-;;   implementation on some ports is incomplete; the v23 and v24 Mac OS X
-;;   ports are examples.  On these systems XBM images are always drawn in
-;;   black, in which case one cannot control the color of the rule.  Use XPM
-;;   or PBM images instead.
-
-;; o Fci-mode needs free use of two characters (specifically, it needs the
-;;   use of two characters whose display table entries it can change
-;;   arbitrarily).  By default, it uses the first two characters of the
-;;   Private Use Area of the Unicode BMP, viz. U+E000 and U+E001.  If you
-;;   need to use those characters for some reason, set `fci-padding-char' and
-;;   `fci-eol-char' to different values.
+;; o Although the XBM and PBM formats are natively supported by Emacs, the
+;;   implementations are different in different ports and sometimes
+;;   incomplete; for example, on some ports XBM images are always drawn in
+;;   black.  Explicitly setting `fci-rule-image-format' to a different value
+;;   will usually resolve such issues.
 
 ;; Known Issues
 ;; ============
@@ -112,15 +115,21 @@
 ;; o The indicator extends only to end of the buffer contents (as opposed to
 ;;   running the full length of the editing window).
 
-;; o When portions of a buffer are invisible, such as when outline mode is
-;;   used to hide certain lines, the fill-column rule is hidden as
-;;   well.  
+;; o When portions of a buffer are invisible, such as when outline-mode is
+;;   used to hide certain lines, the fill-column rule is hidden as well.
+
+;; o Fci-mode should work smoothly when simultaneously displaying the same
+;;   buffer on both a graphical display and on a character terminal.  It does
+;;   not currently support simultaneous display of the same buffer on window
+;;   frames with different default font sizes. (It would be feasible to
+;;   support this use case, but thus far there seems to be no demaned for
+;;   it.)
 
 ;; o An issue specific to the Mac OS X (NextStep) port, versions 23.0-23.2:
 ;;   Emacs won't, in these particular versions, draw a cursor on top of an
 ;;   image.  Thus on graphical displays the cursor will disappear when
 ;;   positioned directly on top of the fill-column rule.  The best way to
-;;   deal with this is to upgrade to 23.3 or to 24 (or downgrade to 22).  If
+;;   deal with this is to upgrade to v23.3 or v24 (or downgrade to v22).  If
 ;;   that isn't practical, a fix is available via the mini-package
 ;;   fci-osx-23-fix.el, which can be downloaded from:
 ;;
@@ -137,22 +146,8 @@
 
 ;;; Code:
 
-;;; ---------------------------------------------------------------------
-;;; Version Specifics
-;;; ---------------------------------------------------------------------
-
 (unless (version<= "22" emacs-version)
   (error "Fill-column-indicator requires version 22 or later"))
-
-(if (fboundp 'characterp)
-    (defalias 'fci-character-p 'characterp)
-  ;; For v22.
-  (defun fci-character-p (c)
-    (and (wholenump c)
-         (/= 0 c)
-         ;; MAX_CHAR in v22 is (0x1F << 14).  We don't worry about
-         ;; generic chars.
-         (< c 507904))))
 
 ;;; ---------------------------------------------------------------------
 ;;; User Options
@@ -176,14 +171,15 @@ function `fci-mode' is run."
 ;; We should be using :validate instead of :match, but that seems not to
 ;; work with defcustom widgets.
 (defcustom fci-rule-width 2
-  "Width, in pixels, of the fill-column rule on graphical displays.
-The value must be less than the default character width.
+  "Width in pixels of the fill-column rule on graphical displays.
+Note that a value greater than the default character width is
+treated as equivalent to the default character width.
 
 Changes to this variable do not take effect until the mode
 function `fci-mode' is run."
   :tag "Fill-Column Rule Width"
   :group 'fill-column-indicator
-  :type  '(integer :match (lambda (w val) (<= val (frame-char-width)))))
+  :type  '(integer :match (lambda (w val) (< 0 val))))
 
 (defcustom fci-rule-image-format
   (if (image-type-available-p 'xpm) 'xpm 'pbm)
@@ -207,7 +203,7 @@ function `fci-mode' is run."
   :type 'character)
 
 (defcustom fci-rule-character-color nil
-  "Color used to draw the fill-column rule with characters.
+  "Color used to draw the fill-column rule on character terminals.
 If nil, the same color is used as for the graphical rule.
 
 Changes to this variable do not take effect until the mode
@@ -254,17 +250,17 @@ Leaving this option set to the default value is recommended."
   "Character used for internal purposes by fci-mode.
 If you need to use this character, set this variable's value to a
 character you do not care about (a good choice is a random
-character from the Private Use Area of the Unicode BMP, i.e.,
-something in the range \uE000-\uF8FF, inclusive)."
+character from the Private Use Area of the Unicode BMP, i.e., the
+range U+E000-U+F8FF, inclusive)."
   :group 'fill-column-indicator
   :type 'character)
 
-(defcustom fci-padding-char ?\uE001
+(defcustom fci-blank-char ?\uE001
   "Character used for internal purposes by fci-mode.
 If you need to use this character, set this variable's value to a
 character you do not care about (a good choice is a random
-character from the Private Use Area of the Unicode BMP, i.e.,
-something in the range \uE000-\uF8FF, inclusive)."
+character from the Private Use Area of the Unicode BMP, i.e., the
+the range U+E000-U+F8FF, inclusive)."
   :group 'fill-column-indicator
   :type 'character)
 
@@ -272,17 +268,17 @@ something in the range \uE000-\uF8FF, inclusive)."
 ;;; Internal Variables and Constants
 ;;; ---------------------------------------------------------------------
 
-;; Save prior state of buffer.
+;; Record prior state of buffer.
 (defvar fci-saved-line-move-visual nil)
 (defvar fci-saved-truncate-lines nil)
 (defvar fci-saved-eol nil)
 (defvar fci-made-display-table nil)
 
-;; State of fci initialization in this buffer.
+;; Record state of fci initialization in this buffer.
 (defvar fci-display-table-processed nil)
 (defvar fci-local-vars-set nil)
 
-;; Save current state of some quantities so we can detect changes to them.
+;; Record current state of some quantities, so we can detect changes to them.
 (defvar fci-column nil)
 (defvar fci-newline-sentinel nil)
 (defvar fci-tab-width nil)
@@ -291,29 +287,34 @@ something in the range \uE000-\uF8FF, inclusive)."
 
 ;; Data used in setting the fill-column rule that only need to be
 ;; occasionally updated in a given buffer.
+(defvar fci-img-descriptor nil)
 (defvar fci-buffer-windows nil)
 (defvar fci-limit nil)
 (defvar fci-pre-limit-string nil)
 (defvar fci-at-limit-string nil)
 (defvar fci-post-limit-string nil)
 
-;; The preceding internal variables need to be buffer local.
-(dolist (var '(fci-saved-line-move-visual
-               fci-saved-truncate-lines
-               fci-saved-eol
-               fci-made-display-table
-               fci-display-table-processed
-               fci-local-vars-set
-               fci-column
-               fci-newline-sentinel
-               fci-tab-width
-               fci-char-width
-               fci-char-height
-               fci-buffer-windows
-               fci-limit
-               fci-pre-limit-string
-               fci-at-limit-string
-               fci-post-limit-string))
+;; The preceding internal variables need to be buffer local and reset when
+;; the mode is disabled.
+(defconst fci-internal-vars '(fci-saved-line-move-visual
+                              fci-saved-truncate-lines
+                              fci-saved-eol
+                              fci-made-display-table
+                              fci-display-table-processed
+                              fci-local-vars-set
+                              fci-column
+                              fci-newline-sentinel
+                              fci-tab-width
+                              fci-char-width
+                              fci-char-height
+                              fci-img-descriptor
+                              fci-buffer-windows
+                              fci-limit
+                              fci-pre-limit-string
+                              fci-at-limit-string
+                              fci-post-limit-string))
+
+(dolist (var fci-internal-vars)
   (make-variable-buffer-local var))
 
 ;; Hooks we use.
@@ -326,12 +327,36 @@ something in the range \uE000-\uF8FF, inclusive)."
     (change-major-mode-hook . (lambda () (fci-mode 0)))
     (longlines-mode-hook . fci-full-update)))
 
+;; The display spec used in overlay before strings to pad out the rule to the
+;; fill-column.  
+(defconst fci-padding-display
+  '((when (fci-overlay-check buffer-position)
+      . (space :align-to fci-column))
+    (space :width 0)))
+
+;;; ---------------------------------------------------------------------
+;;; Miscellaneous Utilities
+;;; ---------------------------------------------------------------------
+
+(if (fboundp 'characterp)
+    (defalias 'fci-character-p 'characterp)
+  ;; For v22.
+  (defun fci-character-p (c)
+    (and (wholenump c)
+         (/= 0 c)
+         ;; MAX_CHAR in v22 is (0x1F << 14).  We don't worry about
+         ;; generic chars.
+         (< c 507904))))
+
+(defun fci-get-buffer-windows ()
+  (get-buffer-window-list (current-buffer) 'no-minibuf t))
+
 ;;; ---------------------------------------------------------------------
 ;;; Mode Definition
 ;;; ---------------------------------------------------------------------
 
 (define-minor-mode fci-mode
-  "Toggle fci mode on and off.
+  "Toggle fci-mode on and off.
 Fci-mode indicates the location of the fill column by drawing a
 thin line (a `rule') at the fill column.
 
@@ -349,23 +374,18 @@ file.  (See the latter for tips on troubleshooting.)"
       ;; Enabling.
       (condition-case error
           (progn
-            (unless (memq fci-rule-image-format '(xpm xbm pbm))
-              (error "Unrecognized value of `fci-rule-image-format'"))
-            (unless (color-defined-p fci-rule-color)
-              (error "Value of `fci-rule-color' must be a color name"))
-            (when (and fci-rule-character-color
-                       (not (color-defined-p fci-rule-character-color)))
-              (error "Value of `fci-rule-character-color' must be a color name"))
-            (unless (fci-character-p fci-rule-character)
-              (error "Value of `fci-rule-character' must be a character"))
+            (fci-check-user-options)
             (fci-process-display-table)
+            (fci-set-local-vars)
+            (dolist (hook fci-hook-assignments)
+              (add-hook (car hook) (cdr hook) nil t))
             (setq fci-column fill-column
                   fci-tab-width tab-width
                   fci-limit (if fci-newline-sentinel
                                 (1+ (- fill-column (length fci-saved-eol)))
                               fill-column))
+            (fci-make-img-descriptor)
             (fci-make-overlay-strings)
-            (fci-set-local-vars)
             (fci-full-update))
         (error
          (fci-mode 0)
@@ -374,28 +394,24 @@ file.  (See the latter for tips on troubleshooting.)"
     ;; Disabling.
     (fci-restore-display-table)
     (fci-restore-local-vars)
+    (dolist (hook fci-hook-assignments)
+      (remove-hook (car hook) (cdr hook) t))
     (remove-hook 'post-command-hook #'fci-full-update t)
     (fci-delete-overlays-buffer)
-    (setq fci-column nil
-          fci-limit nil
-          fci-tab-width nil
-          fci-char-width nil
-          fci-char-height nil
-          fci-buffer-windows nil
-          fci-pre-limit-string nil
-          fci-at-limit-string nil
-          fci-post-limit-string nil)))
+    (dolist (var fci-internal-vars)
+      (set var nil))))
 
 ;;; ---------------------------------------------------------------------
-;;; Initialization and Clean Up: Display Table, Hooks, Etc.
+;;; Initialization and Clean Up: Display Table, Misc Local Variables
 ;;; ---------------------------------------------------------------------
 
 (defun fci-process-display-table ()
+  "Set up a buffer-local display table for fci-mode."
   (unless fci-display-table-processed
     (unless buffer-display-table
       (setq buffer-display-table (make-display-table)
             fci-made-display-table t))
-    (aset buffer-display-table fci-padding-char [32])
+    (aset buffer-display-table fci-blank-char [32])
     (setq fci-saved-eol (aref buffer-display-table 10))
     ;; Assumption: the display-table entry for character 10 is either nil or
     ;; a vector whose last element is the newline glyph.
@@ -411,71 +427,78 @@ file.  (See the latter for tips on troubleshooting.)"
     (setq fci-display-table-processed t)))
 
 (defun fci-restore-display-table ()
-  (aset buffer-display-table 10 fci-saved-eol)
-  ;; Don't set buffer-display-table to nil even if we created it; only do so
-  ;; if it's also empty.
-  (when (and fci-made-display-table
-             (equal buffer-display-table (make-display-table)))
-    (setq buffer-display-table nil))
-  (setq fci-display-table-processed nil
-        fci-made-display-table nil
-        fci-newline-sentinel nil
-        fci-saved-eol nil))
+  "Restore the buffer display table when fci-mode is disabled."
+  (when (and buffer-display-table
+             fci-display-table-processed)
+    (aset buffer-display-table 10 fci-saved-eol)
+    ;; Don't set buffer-display-table to nil even if we created the display
+    ;; table; only do so if nothing else has changed it.
+    (when (and fci-made-display-table
+               (equal buffer-display-table (make-display-table)))
+      (setq buffer-display-table nil))))
 
 (defun fci-set-local-vars ()
+  "Set miscellaneous local variables when fci-mode is enabled."
   (unless fci-local-vars-set
-    (dolist (hook fci-hook-assignments)
-      (add-hook (car hook) (cdr hook) nil t))
     (when (and fci-handle-line-move-visual
                (boundp 'line-move-visual))
-      (setq fci-saved-line-move-visual line-move-visual)
-      (set (make-local-variable 'line-move-visual) nil))
+      (if (local-variable-p 'line-move-visual)
+          (setq fci-saved-line-move-visual (list line-move-visual)
+                line-move-visual nil)
+        (set (make-local-variable 'line-move-visual) nil)))
     (when fci-handle-truncate-lines
-      (setq fci-saved-truncate-lines truncate-lines)
-      (set (make-local-variable 'truncate-lines) t))
+      (setq fci-saved-truncate-lines truncate-lines
+            truncate-lines t))
     (setq fci-local-vars-set t)))
 
 (defun fci-restore-local-vars ()
-  (dolist (hook fci-hook-assignments)
-    (remove-hook (car hook) (cdr hook) t))
+  "Restore miscellaneous local variables when fci-mode is disabled."
   (when fci-local-vars-set
     (when (and fci-handle-line-move-visual
                (boundp 'line-move-visual))
-      (setq line-move-visual fci-saved-line-move-visual
-            fci-saved-line-move-visual nil))
+      (if fci-saved-line-move-visual
+          (setq line-move-visual (car fci-saved-line-move-visual))
+        (kill-local-variable 'line-move-visual)))
     (when fci-handle-truncate-lines
-      (setq truncate-lines fci-saved-truncate-lines
-            fci-saved-truncate-lines nil)))
-  (setq fci-local-vars-set nil))
+      (setq truncate-lines fci-saved-truncate-lines))))
+
+(defun fci-check-user-options ()
+  "Check that all user options for fci-mode are of the appropriate type."
+  (unless (memq fci-rule-image-format '(xpm xbm pbm))
+    (error "Unrecognized value of `fci-rule-image-format'"))
+  (unless (color-defined-p fci-rule-color)
+    (error "Value of `fci-rule-color' must be a color name"))
+  (when (and fci-rule-character-color
+             (not (color-defined-p fci-rule-character-color)))
+    (error "Value of `fci-rule-character-color' must be a color name"))
+  (unless (fci-character-p fci-rule-character)
+    (error "Value of `fci-rule-character' must be a character"))
+  (unless (fci-character-p fci-blank-char)
+    (error "Value of `fci-blank-char' must be a character"))
+  (unless (fci-character-p fci-eol-char)
+    (error "Value of `fci-eol-char' must be a character"))
+  (unless (wholenump fci-rule-width)
+    (error "Value of `fci-rule-width' must be a non-negative integer")))
 
 ;;; ---------------------------------------------------------------------
 ;;; Initialization:  Overlay Strings
 ;;; ---------------------------------------------------------------------
 
-;; Return true if there is some other overlay at POS that wants to fontify
-;; POS with a background color.
 (defun fci-overlay-check (pos)
+  "Return true if there is an overlay at POS that fills the background."
   (not (memq t (mapcar #'(lambda (x)
-                           (and (not (overlay-get x 'fci))
-                                (overlay-get x 'face)
+                           (and (overlay-get x 'face)
                                 (not (eq (face-attribute
                                           (overlay-get x 'face)
                                           :background nil t)
                                          'unspecified))))
                        (overlays-at pos)))))
 
-;; The display spec used in overlay before strings to pad out the rule to the
-;; fill-column.  If some other overlay wants to color that region, don't
-;; display anything.
-(defconst fci-padding-display
-  '((when (fci-overlay-check buffer-position)
-      . (space :align-to fci-column))
-    (space :width 0)))
-
-;; Generate the display spec for the rule.  Basic idea is to display the
-;; textual rule if the display doesn't support images and the graphical rule
-;; if it does.  But in both cases, only display if no other overlay wants to 
-;; fill the background of this region. 
+;; Generate the display spec for the rule.  Basic idea is to use a "cascading
+;; display property" to display the textual rule if the display doesn't
+;; support images and the graphical rule if it does, but in either case only
+;; display a rule if no other overlay wants to fill the background at the
+;; relevant buffer position.
 (defun fci-rule-display (blank img str pre)
   "Generate a display specification for a fill-column rule overlay string."
   (let ((cursor (if (and (not pre) (not fci-newline-sentinel)) 1)))
@@ -496,23 +519,28 @@ file.  (See the latter for tips on troubleshooting.)"
 (defun fci-make-overlay-strings ()
   "Generate the overlay strings used to display the fill-column rule."
   (let* ((str (fci-make-rule-string))
-         (img (fci-make-rule-img))
-         (blank (char-to-string fci-padding-char))
+         (blank (char-to-string fci-blank-char))
          (eol-str (char-to-string fci-eol-char))
          (end-cap (propertize blank 'display '(space :width 0)))
          (eol (propertize eol-str
                           'cursor 1
                           'display (propertize eol-str 'cursor 1)))
          (padding (propertize blank 'display fci-padding-display))
-         (before-rule (fci-rule-display blank img str t))
-         (at-rule (fci-rule-display blank img str fci-newline-sentinel))
+         (before-rule (fci-rule-display blank 
+                                        fci-img-descriptor
+                                        str
+                                        t))
+         (at-rule (fci-rule-display blank 
+                                    fci-img-descriptor 
+                                    str 
+                                    fci-newline-sentinel))
          (at-eol (if fci-newline-sentinel eol "")))
     (setq fci-pre-limit-string (concat eol padding before-rule)
-          fci-at-limit-string (concat at-eol padding at-rule)
+          fci-at-limit-string (concat at-eol at-rule)
           fci-post-limit-string (concat eol end-cap))))
 
 ;;; ---------------------------------------------------------------------
-;;; Initialization:  Generate Rule Image and Propertized Rule String
+;;; Initialization:  Generate the Rule Image and Propertized Rule String
 ;;; ---------------------------------------------------------------------
 
 (defun fci-make-rule-string ()
@@ -523,28 +551,37 @@ file.  (See the latter for tips on troubleshooting.)"
     (propertize (char-to-string fci-rule-character)
                 'face `(:foreground ,color :weight normal :slant normal))))
 
-(defun fci-make-rule-img ()
-  "Return an image descriptor for the fill-column rule."
-  (unless fci-always-use-textual-rule
-    (unless fci-char-width
-      (setq fci-char-width (frame-char-width)
-            fci-char-height (frame-char-height)))
-    (when (< 1 fci-char-width)
-      (cond
-       ((eq fci-rule-image-format 'xbm)
-        (fci-make-xbm-img))
-       ((eq fci-rule-image-format 'pbm)
-        (fci-make-pbm-img))
-       ((eq fci-rule-image-format 'xpm)
-        (fci-make-xpm-img))))))
+;; Assumption:  Window frames displaying this buffer share the same
+;; default character size.
+(defun fci-make-img-descriptor ()
+  "Make an image descriptor for the fill-column rule."
+  (let ((frame (catch 'found-graphic
+                 (dolist (win (fci-get-buffer-windows))
+                   (when (display-images-p (window-frame win))
+                     (throw 'found-graphic (window-frame win)))))))
+    (if (or fci-always-use-textual-rule
+            (not frame))
+        (setq fci-char-width 1
+              fci-char-height 1
+              fci-img-descriptor nil)
+      (setq  fci-char-width (frame-char-width frame)
+             fci-char-height (frame-char-height frame)
+             fci-img-descriptor (cond
+                                 ((eq fci-rule-image-format 'xbm)
+                                  (fci-make-xbm-img))
+                                 ((eq fci-rule-image-format 'pbm)
+                                  (fci-make-pbm-img))
+                                 (t
+                                  (fci-make-xpm-img)))))))
 
 (defun fci-make-xbm-img ()
   "Return an image descriptor for the fill-column rule in XBM format."
   (let* ((img-width (+ fci-char-width (- 8 (% fci-char-width 8))))
-         (row-pixels (make-bool-vector fci-char-width nil))
+         (row-pixels (make-bool-vector img-width nil))
          (raster (make-vector fci-char-height row-pixels))
-         (left-margin (/ (- fci-char-width fci-rule-width) 2)))
-    (dotimes (i fci-rule-width)
+         (rule-width (min fci-rule-width fci-char-width))
+         (left-margin (/ (- img-width rule-width) 2)))
+    (dotimes (i rule-width)
       (aset row-pixels (+ i left-margin) t))
     `(image :type xbm
             :data ,raster
@@ -552,19 +589,20 @@ file.  (See the latter for tips on troubleshooting.)"
             :mask heuristic
             :ascent center
             :height ,fci-char-height
-            :width ,fci-char-width)))
+            :width ,img-width)))
 
 (defun fci-make-pbm-img ()
   "Return an image descriptor for the fill-column rule in PBM format."
   (let* ((height-str (number-to-string fci-char-height))
          (width-str (number-to-string fci-char-width))
-         (margin (/ (- fci-char-width fci-rule-width) 2.0))
+         (rule-width (min fci-rule-width fci-char-width))
+         (margin (/ (- fci-char-width rule-width) 2.0))
          (left-margin (floor margin))
          (right-margin (ceiling margin))
          (identifier "P1\n")
          (dimens (concat width-str " " height-str "\n"))
          (left-pixels (mapconcat #'identity (make-list left-margin "0") " "))
-         (rule-pixels (mapconcat #'identity (make-list fci-rule-width "1") " "))
+         (rule-pixels (mapconcat #'identity (make-list rule-width "1") " "))
          (right-pixels (mapconcat #'identity (make-list right-margin "0") " "))
          (row-pixels (concat left-pixels " " rule-pixels " " right-pixels))
          (raster (mapconcat #'identity 
@@ -581,7 +619,8 @@ file.  (See the latter for tips on troubleshooting.)"
   "Return an image descriptor for the fill-column rule in XPM format."
   (let* ((height-str (number-to-string fci-char-height))
          (width-str (number-to-string fci-char-width))
-         (margin (/ (- fci-char-width fci-rule-width) 2.0))
+         (rule-width (min fci-rule-width fci-char-width))
+         (margin (/ (- fci-char-width rule-width) 2.0))
          (left-margin (floor margin))
          (right-margin (ceiling margin))
          (identifier "/* XPM */\nstatic char *rule[] = {\n")
@@ -589,7 +628,7 @@ file.  (See the latter for tips on troubleshooting.)"
          (color-spec (concat "\"1 c " fci-rule-color "\",\n \"0 c None\",\n"))
          (row-pixels (concat "\""
                              (make-string left-margin ?0)
-                             (make-string fci-rule-width ?1)
+                             (make-string rule-width ?1)
                              (make-string right-margin ?0)
                              "\",\n"))
          (raster (mapconcat #'identity 
@@ -612,6 +651,9 @@ file.  (See the latter for tips on troubleshooting.)"
        (let ((inhibit-point-motion-hooks t))
          ,@body))))
 
+;; Inlining the next three functions matters only for the case in which the
+;; user creates repeated scroll events by, e.g., holding down C-v or
+;; M-v.  But that's a common enough action that we should accomodate it.
 (defsubst fci-get-overlays-region (start end)
   "Return all overlays between START and END displaying the fill-column rule."
   (delq nil (mapcar #'(lambda (o) (if (overlay-get o 'fci) o)) 
@@ -621,6 +663,21 @@ file.  (See the latter for tips on troubleshooting.)"
   "Delete overlays displaying the fill-column rule between START and END."
   (mapc #'(lambda (o) (if (overlay-get o 'fci) (delete-overlay o)))
         (overlays-in start end)))
+
+(defsubst fci-delete-unneeded ()
+  "Erase the fill-column rule at buffer positions not visible in any window."
+  (let ((olays (fci-get-overlays-region (point-min) (point-max)))
+        (ranges (mapcar #'(lambda (w) 
+                            (cons (window-start w) (window-end w t)))
+                        fci-buffer-windows))
+        pos)
+    (dolist (o olays)
+      (setq pos (overlay-start o))
+      (unless (memq t (mapcar #'(lambda (range) 
+                                  (and (<= (car range) pos) 
+                                       (< pos (cdr range))))
+                              ranges))
+        (delete-overlay o)))))
 
 ;; It would be slightly faster to run this backwards from END to START, but
 ;; only if we maintained the overlay center at an early position in the
@@ -644,22 +701,6 @@ file.  (See the latter for tips on troubleshooting.)"
         (overlay-put o 'after-string fci-at-limit-string)))
       (goto-char (match-end 0)))))
 
-;; Inlining this matters only for the case in which the user creates repeated
-;; scroll events (by, e.g., holding down C-v or M-v).  But that's a common
-;; enough action that we should accomodate it.
-(defsubst fci-delete-unneeded ()
-  "Erase the fill-column rule at buffer positions not visible in any window."
-  (let ((olays (fci-get-overlays-region (point-min) (point-max)))
-        (ranges (mapcar #'(lambda (w) (cons (window-start w) (window-end w t)))
-                        fci-buffer-windows))
-        pos)
-    (dolist (o olays)
-      (setq pos (overlay-start o))
-      (unless (memq t (mapcar #'(lambda (range) (and (<= (car range) pos) 
-                                                     (< pos (cdr range))))
-                              ranges))
-        (delete-overlay o)))))
-
 (defun fci-redraw-region (start end _ignored)
   "Erase and redraw the fill-column rule between START and END."
   (fci-sanitize-actions
@@ -668,11 +709,19 @@ file.  (See the latter for tips on troubleshooting.)"
    (fci-delete-overlays-region start end)
    (fci-put-overlays-region start end)))
 
+(defun fci-update-window-for-scroll (win start)
+  "Redraw the fill-column rule in WIN after it has been been scrolled."
+  (fci-sanitize-actions
+   (fci-delete-unneeded)
+   (let ((end (window-end win t)))
+     (fci-delete-overlays-region start end)
+     (fci-put-overlays-region start end))))
+
 ;; This doesn't determine the strictly minimum amount by which the rule needs
 ;; to be extended, but the amount used is always sufficient, and in the modal
 ;; case determining the genuine minimum is slower.
 (defun fci-extend-rule-for-deletion (start end)
-  "Extend the fill-column after a deletion that spans newlines."
+  "Extend the fill-column rule after a deletion that spans newlines."
   (unless (= start end)
     (let ((delenda (fci-get-overlays-region start end)))
       (when delenda
@@ -680,10 +729,6 @@ file.  (See the latter for tips on troubleshooting.)"
         (let ((lossage 0)
               (max-end 0)
               win-end)
-          (save-excursion
-            (goto-char start)
-            (while (search-forward "\n" end t)
-              (setq lossage (1+ lossage))))
           (dolist (win fci-buffer-windows)
             ;; Do not ask for an updated value of window-end.
             (setq win-end (window-end win))
@@ -692,10 +737,15 @@ file.  (See the latter for tips on troubleshooting.)"
                        (< max-end win-end))
               (setq max-end win-end)))
           (unless (= max-end (point-max))
+            (save-excursion
+              (goto-char start)
+              (while (search-forward "\n" end t)
+                (setq lossage (1+ lossage))))
             (fci-redraw-region max-end 
                                (save-excursion 
                                  (goto-char max-end)
-                                 (line-beginning-position lossage)) nil)))))))
+                                 (line-beginning-position lossage)) 
+                               nil)))))))
 
 ;; If N windows display the buffer, then window-configuration-change-hook
 ;; calls this function N times.  Since we only need to run the window update
@@ -709,27 +759,18 @@ file.  (See the latter for tips on troubleshooting.)"
   "Redraw the fill-column rule in all windows on this buffer."
   (remove-hook 'post-command-hook #'fci-full-update t)
   (overlay-recenter (point-max))
-  (setq fci-buffer-windows 
-        (get-buffer-window-list (current-buffer) 'no-minibuf t))
+  (setq fci-buffer-windows (fci-get-buffer-windows)) 
   (fci-delete-unneeded)
   (let (start end)
-    (fci-sanitize-actions
-     ;; If some windows on this buffer overlap, we end up redrawing the
-     ;; overlap once for each window, but the cost of doing so is less than
-     ;; the cost of trying to avoid such redrawing.
+    (fci-sanitize-actions 
+     ;; If some windows on this buffer overlap, we end up redrawing the rule
+     ;; in the overlapped area multiple times, but it's faster to do that
+     ;; than do the computations needed to avoid such redrawing.
      (dolist (win fci-buffer-windows)
        (setq start (window-start win)
              end (window-end win t))
        (fci-delete-overlays-region start end)
        (fci-put-overlays-region start end)))))
-
-(defun fci-update-window-for-scroll (win start)
-  "Redraw the fill-column rule in WIN after it has been been scrolled."
-  (fci-sanitize-actions
-   (fci-delete-unneeded)
-   (let ((end (window-end win t)))
-     (fci-delete-overlays-region start end)
-     (fci-put-overlays-region start end))))
 
 (defun fci-delete-overlays-buffer ()
   "Delete all overlays displaying the fill-column rule in the current buffer."
@@ -741,30 +782,28 @@ file.  (See the latter for tips on troubleshooting.)"
 
 ;; This in placed in post-command-hook and does four things:
 ;; 1. If the display table has been deleted or something has changed the
-;;    display table for newline chars, then we need to regenerate overlay
-;;    strings after reprocessing the display table.
-;; 2. If default char width or height has changed, we regenerate the
-;;    rule.  (This handles both font changes and also cases where we activate
-;;    the mode while displaying on a char terminal then subsequently display
-;;    the buffer on a window frame.)
-;; 3. If the value of `tab-width' or `fill-column' has changed, we need to
-;;    reset the rule.  (We could set things up so that the rule adjusted
-;;    automatically to such changes, but (a) it's slower, and (b) it wouldn't
-;;    work on v22 or v23.)  
+;;    display table for newline chars, we regenerate overlay strings after
+;;    reprocessing the display table.
+;; 2. If the default char width or height has changed, we regenerate the rule
+;;    image.  (This handles both font changes and also cases where we
+;;    activate the mode while displaying on a char terminal then subsequently
+;;    display the buffer on a window frame.)
+;; 3. If the value of `tab-width' or `fill-column' has changed, we reset the
+;;    rule.  (We could set things up so that the rule adjusted automatically
+;;    to such changes, but (a) it's slower, and (b) it wouldn't work on v22
+;;    or v23.)
 ;; 4. Cursor properties are ignored when they're out of sight because of
-;;    horizontal scrolling.  We need to detect such situations and force a
-;;    return from hscrolling to bring our requested cursor position back into
-;;    view.
+;;    horizontal scrolling.  We detect such situations and force a return
+;;    from hscrolling to bring our requested cursor position back into view.
 (defun fci-post-command-check ()
   (cond
    ((not (and buffer-display-table
               (equal (aref buffer-display-table 10) fci-newline-sentinel)))
     (setq fci-display-table-processed nil)
-    (fci-mode 1))
+    (fci-mode 1)) 
    ((and (< 1 (frame-char-width))
          (not (and (= (frame-char-width) fci-char-width)
                    (= (frame-char-height) fci-char-height))))
-    (setq fci-char-width nil)
     (fci-mode 1))
    ((not (and (= fill-column fci-column)
               (= tab-width fci-tab-width)))
@@ -780,3 +819,6 @@ file.  (See the latter for tips on troubleshooting.)"
 (provide 'fill-column-indicator)
 
 ;;; fill-column-indicator.el ends here
+
+
+

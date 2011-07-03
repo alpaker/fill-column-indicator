@@ -34,7 +34,7 @@ Configuration
 * On character terminals the rule is drawn using the character specified by
   `fci-rule-character`; the default is \`|' (ascii 124).  If
   `fci-rule-character-color` is nil, then it is drawn using fci-rule-color
-  (or the closest appromixation thereto that the terminal is capable of); if
+  (or the closest approximation thereto that the terminal is capable of); if
   it is a color name, then that color is used instead.
 
 * If you'd like the rule to be drawn using fci-rule-character even on
@@ -102,7 +102,7 @@ Known Issues
   buffer on both a graphical display and on a character terminal.  It does
   not currently support simultaneous display of the same buffer on window
   frames with different default font sizes. (It would be feasible to
-  support this use case, but thus far there seems to be no demaned for
+  support this use case, but thus far there seems to be no demand for
   it.)
 
 * An issue specific to the Mac OS X (NextStep) port, versions 23.0-23.2:
@@ -117,6 +117,6 @@ Known Issues
 Todo
 ====
 
-* Accomodate non-nil values of hl-line-sticky-flag and similar cases.
+* Accommodate non-nil values of hl-line-sticky-flag and similar cases.
 
-* Accomodate linum-mode more robustly.
+* Accommodate linum-mode more robustly.

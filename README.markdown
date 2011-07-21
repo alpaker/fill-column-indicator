@@ -117,8 +117,8 @@ Known Issues
 Todo
 ====
 
-* Accommodate non-nil values of hl-line-sticky-flag and similar cases.
+* Accommodate non-nil values of `hl-line-sticky-flag` and similar cases.
 
 * Accommodate linum-mode more robustly.
 
-* Compatibility with non-nil `show-trailing-whitespace'.
+* Compatibility with non-nil `show-trailing-whitespace`.

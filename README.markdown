@@ -40,8 +40,8 @@ Configuration
 * If you'd like the rule to be drawn using fci-rule-character even on
   graphical displays, set `fci-always-use-textual-rule` to a non-nil value.
 
-* These variables (as well as those in the next section) can be given
-  buffer-local bindings.
+These variables (as well as those in the next section) can be given
+buffer-local bindings.
 
 
 Other Options
@@ -120,3 +120,5 @@ Todo
 * Accommodate non-nil values of hl-line-sticky-flag and similar cases.
 
 * Accommodate linum-mode more robustly.
+
+* Compatibility with non-nil `show-trailing-whitespace'.

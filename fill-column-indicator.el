@@ -3,7 +3,7 @@
 ;; Copyright (c) 2011 Alp Aker
 
 ;; Author: Alp Aker <alp.tekin.aker@gmail.com>
-;; Version: 1.67
+;; Version: 1.68
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or
@@ -362,7 +362,7 @@ thin line (a `rule') at the fill column.
 With prefix ARG, turn fci-mode on if and only if ARG is positive.
 
 The following options control the appearance of the fill-column
-indicator: `fci-rule-width', `fci-rule-color',
+rule: `fci-rule-width', `fci-rule-color',
 `fci-rule-character', and `fci-rule-character-color'.  For
 further options, see the Customization menu or the package
 file.  (See the latter for tips on troubleshooting.)"
@@ -400,7 +400,7 @@ file.  (See the latter for tips on troubleshooting.)"
       (set var nil))))
 
 ;;; ---------------------------------------------------------------------
-;;; Enabling Helper Functions
+;;; Enabling
 ;;; ---------------------------------------------------------------------
 
 (defun fci-check-user-options ()
@@ -465,22 +465,23 @@ file.  (See the latter for tips on troubleshooting.)"
 (defun fci-make-img-descriptor ()
   "Make an image descriptor for the fill-column rule."
   (unless fci-always-use-textual-rule
-    (let ((frame (if (display-graphic-p)
-                     (selected-frame)
-                   (catch 'found-graphic
-                     (dolist (win (fci-get-buffer-windows))
-                       (when (display-images-p (window-frame win))
-                         (throw 'found-graphic (window-frame win))))))))
+    (let ((frame (catch 'found-graphic
+                   (dolist (win (fci-get-buffer-windows))
+                     (when (display-images-p (window-frame win))
+                       (throw 'found-graphic (window-frame win)))))))
       (setq fci-char-width (frame-char-width frame)
             fci-char-height (frame-char-height frame))
+      ;; No point passing width, height, color etc. directly to the image
+      ;; functions:  those variables need to have either global or
+      ;; buffer-local scope, so the image functions can access them directly.
       (if frame
           (cond
-           ((eq fci-rule-image-format 'xbm)
-            (fci-make-xbm-img))
+           ((eq fci-rule-image-format 'xpm)
+            (fci-make-xpm-img))
            ((eq fci-rule-image-format 'pbm)
             (fci-make-pbm-img))
            (t
-            (fci-make-xpm-img)))))))
+            (fci-make-xbm-img)))))))
 
 (defun fci-make-xbm-img ()
   "Return an image descriptor for the fill-column rule in XBM format."
@@ -574,22 +575,22 @@ file.  (See the latter for tips on troubleshooting.)"
   "Generate the overlay strings used to display the fill-column rule."
   (let* ((str (fci-make-rule-string))
          (img (fci-make-img-descriptor))
-         (blank (char-to-string fci-blank-char))
+         (blank-str (char-to-string fci-blank-char))
          (eol-str (char-to-string fci-eol-char))
-         (end-cap (propertize blank 'display '(space :width 0)))
-         (eol (propertize eol-str
-                          'cursor 1
-                          'display (propertize eol-str 'cursor 1)))
-         (padding (propertize blank 'display fci-padding-display))
-         (before-rule (fci-rule-display blank img str t))
-         (at-rule (fci-rule-display blank img str fci-newline-sentinel))
-         (at-eol (if fci-newline-sentinel eol "")))
-    (setq fci-pre-limit-string (concat eol padding before-rule)
+         (end-cap (propertize blank-str 'display '(space :width 0)))
+         (pre-post-eol (propertize eol-str
+                                   'cursor 1
+                                   'display (propertize eol-str 'cursor 1)))
+         (pre-padding (propertize blank-str 'display fci-padding-display))
+         (pre-rule (fci-rule-display blank-str img str t))
+         (at-rule (fci-rule-display blank-str img str fci-newline-sentinel))
+         (at-eol (if fci-newline-sentinel pre-post-eol "")))
+    (setq fci-pre-limit-string (concat pre-post-eol pre-padding pre-rule)
           fci-at-limit-string (concat at-eol at-rule)
-          fci-post-limit-string (concat eol end-cap))))
+          fci-post-limit-string (concat pre-post-eol end-cap))))
 
 ;;; ---------------------------------------------------------------------
-;;; Disabling Helper Functions
+;;; Disabling
 ;;; ---------------------------------------------------------------------
 
 (defun fci-restore-local-vars ()
@@ -699,8 +700,9 @@ file.  (See the latter for tips on troubleshooting.)"
      (fci-put-overlays-region start end))))
 
 ;; This doesn't determine the strictly minimum amount by which the rule needs
-;; to be extended, but the amount used is always sufficient, and in the modal
-;; case determining the genuine minimum is slower.
+;; to be extended, but the amount used is always sufficient, and the extra
+;; computation involved in determining the genuine minimum is more expensive
+;; than doing the extra drawing.
 (defun fci-extend-rule-for-deletion (start end)
   "Extend the fill-column rule after a deletion that spans newlines."
   (unless (= start end)
@@ -754,7 +756,9 @@ file.  (See the latter for tips on troubleshooting.)"
 
 (defun fci-delete-overlays-buffer ()
   "Delete all overlays displaying the fill-column rule in the current buffer."
-  (fci-delete-overlays-region (point-min) (point-max)))
+  (save-restriction
+    (widen)
+    (fci-delete-overlays-region (point-min) (point-max))))
 
 ;;; ---------------------------------------------------------------------
 ;;; Workarounds
@@ -770,11 +774,13 @@ file.  (See the latter for tips on troubleshooting.)"
 ;;    display the buffer on a window frame.)
 ;; 3. If the value of `tab-width' or `fill-column' has changed, we reset the
 ;;    rule.  (We could set things up so that the rule adjusted automatically
-;;    to such changes, but (a) it's slower, and (b) it wouldn't work on v22
-;;    or v23.)
+;;    to such changes, but it wouldn't work on v22 or v23.)
 ;; 4. Cursor properties are ignored when they're out of sight because of
 ;;    horizontal scrolling.  We detect such situations and force a return
 ;;    from hscrolling to bring our requested cursor position back into view.
+;; These are all fast tests, so despite the large remit this function
+;; doesn't have any effect on editing speed.  (Typical case run-time
+;; benchmarks at 10e-6 on my machine.) 
 (defun fci-post-command-check ()
   (cond
    ((not (and buffer-display-table

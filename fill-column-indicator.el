@@ -251,18 +251,18 @@ Leaving this option set to the default value is recommended."
 (defcustom fci-eol-char ?\uE000
   "Character used for internal purposes by fci-mode.
 If you need to use this character, set this variable's value to a
-character you do not care about (a good choice is a random
-character from the Private Use Area of the Unicode BMP, i.e., the
-range U+E000-U+F8FF, inclusive)."
+character you do not care about (a good choice is a character
+from the Private Use Area of the Unicode BMP, i.e., the range
+U+E000-U+F8FF, inclusive)."
   :group 'fill-column-indicator
   :type 'character)
 
 (defcustom fci-blank-char ?\uE001
   "Character used for internal purposes by fci-mode.
 If you need to use this character, set this variable's value to a
-character you do not care about (a good choice is a random
-character from the Private Use Area of the Unicode BMP, i.e., the
-the range U+E000-U+F8FF, inclusive)."
+character you do not care about (a good choice is a character
+from the Private Use Area of the Unicode BMP, i.e., the the range
+U+E000-U+F8FF, inclusive)."
   :group 'fill-column-indicator
   :type 'character)
 

@@ -3,7 +3,7 @@
 ;; Copyright (c) 2011 Alp Aker
 
 ;; Author: Alp Aker <alp.tekin.aker@gmail.com>
-;; Version: 1.68
+;; Version: 1.69
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or

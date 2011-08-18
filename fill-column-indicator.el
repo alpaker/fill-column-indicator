@@ -3,7 +3,7 @@
 ;; Copyright (c) 2011 Alp Aker
 
 ;; Author: Alp Aker <alp.tekin.aker@gmail.com>
-;; Version: 1.69
+;; Version: 1.70
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or
@@ -466,9 +466,11 @@ file.  (See the latter for tips on troubleshooting.)"
   "Make an image descriptor for the fill-column rule."
   (unless fci-always-use-textual-rule
     (let ((frame (catch 'found-graphic
-                   (dolist (win (fci-get-buffer-windows))
-                     (when (display-images-p (window-frame win))
-                       (throw 'found-graphic (window-frame win)))))))
+                   (if (display-images-p)
+                       (selected-frame)
+                     (dolist (win (fci-get-buffer-windows))
+                       (when (display-images-p (window-frame win))
+                         (throw 'found-graphic (window-frame win))))))))
       (setq fci-char-width (frame-char-width frame)
             fci-char-height (frame-char-height frame))
       ;; No point passing width, height, color etc. directly to the image

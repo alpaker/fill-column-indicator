@@ -40,6 +40,12 @@ Configuration
 * If you'd like the rule to be drawn using fci-rule-character even on
   graphical displays, set `fci-always-use-textual-rule` to a non-nil value.
 
+* If you'd like the rule to be drawn at a column other than the fill-column, set
+  `fci-fill-column` to a non-nil value.  This is useful if you want a
+  fill-column of, say, 70 or 72 characters for wrapping flowing blocks of text
+  such as code comments, but want a vertical rule at, say, 80 or 100 characters
+  to indicate the maximum line length for lines of code.
+
 These variables (as well as those in the next section) can be given
 buffer-local bindings.
 

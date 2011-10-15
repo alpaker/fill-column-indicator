@@ -3,7 +3,7 @@
 ;; Copyright (c) 2011 Alp Aker
 
 ;; Author: Alp Aker <alp.tekin.aker@gmail.com>
-;; Version: 1.70
+;; Version: 1.71
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or
@@ -411,9 +411,9 @@ file.  (See the latter for tips on troubleshooting.)"
              (not (color-defined-p fci-rule-character-color)))
     (signal 'wrong-type-argument `(color-defined-p ,fci-rule-character-color)))
   (let ((checks `((color-defined-p . ,fci-rule-color)
-                  (characterp . ,fci-rule-character)
-                  (characterp . ,fci-blank-char)
-                  (characterp . ,fci-eol-char)
+                  (fci-character-p . ,fci-rule-character)
+                  (fci-character-p . ,fci-blank-char)
+                  (fci-character-p . ,fci-eol-char)
                   (wholenump . ,fci-rule-width))))
     (dolist (check checks)
       (unless (funcall (car check) (cdr check))
@@ -536,7 +536,7 @@ file.  (See the latter for tips on troubleshooting.)"
          (right-margin (ceiling margin))
          (identifier "/* XPM */\nstatic char *rule[] = {\n")
          (dims (concat "\"" width-str " " height-str " 2 1\",\n"))
-         (color-spec (concat "\"1 c " fci-rule-color "\",\n \"0 c None\",\n"))
+         (color-spec (concat "\"1 c " fci-rule-color "\",\n \"0 c " "0"  "\",\n"))
          (row-pixels (concat "\""
                              (make-string left-margin ?0)
                              (make-string rule-width ?1)
@@ -549,7 +549,9 @@ file.  (See the latter for tips on troubleshooting.)"
          (data (concat identifier dims color-spec raster end)))
     `(image :type xpm
             :data ,data
+            :mask heuristic
             :ascent center)))
+
 
 ;; Generate the display spec for the rule.  Basic idea is to use a "cascading
 ;; display property" to display the textual rule if the display doesn't

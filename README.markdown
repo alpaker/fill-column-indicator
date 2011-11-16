@@ -20,6 +20,14 @@ command `fci-mode`.
 Configuration
 =============
 
+* By default fci-mode draws a vertical line at the fill column.  If you'd
+  like it to be drawn at a different location, set `fci-rule-column` to the
+  desired column number.  (A case in which this might be useful is when you
+  want to fill comments at, for example, column 70, but want a vertical rule
+  at column 80 or 100 to indicate the maximum line length for code.)  The
+  default behavior (showing the indicator at the fill column) is specified by
+  setting fci-rule-column to nil.
+
 * On graphical displays the fill-column rule is drawn using a bitmap
   image.  Its color is controlled by the variable `fci-rule-color`, whose
   value can be any valid color name.  The rule's width in pixels is
@@ -39,13 +47,6 @@ Configuration
 
 * If you'd like the rule to be drawn using fci-rule-character even on
   graphical displays, set `fci-always-use-textual-rule` to a non-nil value.
-
-* By default fci-mode draws a vertical line at the fill column.  If you'd
-  like it to be drawn at a different location, set `fci-rule-column` to the
-  desired column number.  A case in which this is useful is when you want to
-  fill comments at, for example, column 70, but want a vertical rule at
-  column 80 or 100 to indicate the maximum line length for code.  (The
-  default behavior corresponds to a value of nil for fci-rule-column.)
 
 These variables (as well as those in the next section) can be given
 buffer-local bindings.
@@ -98,15 +99,13 @@ Troubleshooting
 * Fci-mode in not currently compatible with Emacs's
   `show-trailing-whitespace` feature (given the way the latter is
   implemented, such compatilibility is going to be hard to achieve).  A
-  workaround is to configure `whitespace-mode1 to replicate the
-  functionality of show-trailing-whitespace.  This can be done with the
-  following setting:
+  workaround is to use `whitespace-mode` with an appropriate
+  configuration.  This can be done with the following setting:
 
     `(setq whitespace-style '(face trailing))`
 
-  With this, whitespace-mode produces the same basic effect as a non-nil
-  value of show-trailing-whitespace, and compatibility with fci-mode is not
-  a problem.
+  With this, whitespace-mode provides the same basic functionality as
+  show-trailing-whitespace, and compatibility with fci-mode is not a problem.
 
 Known Issues
 ============

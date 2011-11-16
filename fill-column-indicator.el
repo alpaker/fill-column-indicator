@@ -3,7 +3,7 @@
 ;; Copyright (c) 2011 Alp Aker
 
 ;; Author: Alp Aker <alp.tekin.aker@gmail.com>
-;; Version: 1.72
+;; Version: 1.73
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or
@@ -783,8 +783,7 @@ file.  (See the latter for tips on troubleshooting.)"
 ;;    horizontal scrolling.  We detect such situations and force a return
 ;;    from hscrolling to bring our requested cursor position back into view.
 ;; These are all fast tests, so despite the large remit this function
-;; doesn't have any effect on editing speed.  (Typical case run-time
-;; benchmarks at 10e-6 on my machine.) 
+;; doesn't have any effect on editing speed. 
 (defun fci-post-command-check ()
   (cond
    ((not (and buffer-display-table

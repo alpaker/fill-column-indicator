@@ -161,6 +161,21 @@
   :group 'convenience
   :group 'fill)
 
+(defcustom fci-fill-column nil
+  "The column where a vertical line should be displayed.
+
+By default, the vertical line will be drawn at the column
+indicated by the fill-column variable.  If you instead want an
+indicator at another column, specify that column here.
+
+Changes to this variable do not take effect until the mode
+function `fci-mode' is run."
+  :group 'fill-column-indicator
+  :tag "Fill-Column rule column"
+  :type '(choice (const :tag "Use same column as fill-column" nil)
+                 (integer :tag "Use a custom column"
+                          :match (lambda (w val) (wholenump val)))))
+
 (defcustom fci-rule-color "#cccccc"
   "Color used to draw the fill-column rule.
 
@@ -362,7 +377,7 @@ thin line (a `rule') at the fill column.
 With prefix ARG, turn fci-mode on if and only if ARG is positive.
 
 The following options control the appearance of the fill-column
-rule: `fci-rule-width', `fci-rule-color',
+rule: `fci-fill-column', `fci-rule-width', `fci-rule-color',
 `fci-rule-character', and `fci-rule-character-color'.  For
 further options, see the Customization menu or the package
 file.  (See the latter for tips on troubleshooting.)"
@@ -378,11 +393,11 @@ file.  (See the latter for tips on troubleshooting.)"
             (fci-set-local-vars)
             (dolist (hook fci-hook-assignments)
               (add-hook (car hook) (cdr hook) nil t))
-            (setq fci-column fill-column
+            (setq fci-column (or fci-fill-column fill-column)
                   fci-tab-width tab-width
                   fci-limit (if fci-newline-sentinel
-                                (1+ (- fill-column (length fci-saved-eol)))
-                              fill-column))
+                                (1+ (- fci-column (length fci-saved-eol)))
+                              fci-column))
             (fci-make-overlay-strings)
             (fci-full-update))
         (error
@@ -795,7 +810,7 @@ file.  (See the latter for tips on troubleshooting.)"
          (not (and (= (frame-char-width) fci-char-width)
                    (= (frame-char-height) fci-char-height))))
     (fci-mode 1))
-   ((not (and (= fill-column fci-column)
+   ((not (and (= (or fci-fill-column fill-column) fci-column)
               (= tab-width fci-tab-width)))
     (fci-mode 1))
    ((and (< 0 (window-hscroll))

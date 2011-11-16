@@ -376,7 +376,7 @@ U+E000-U+F8FF, inclusive)."
     (defalias 'fci-character-p 'characterp)
   ;; For v22.
   (defun fci-character-p (c)
-    (and (fci-posint-p x)
+    (and (fci-posint-p c)
          ;; MAX_CHAR in v22 is (0x1F << 14).  We don't worry about
          ;; generic chars.
          (< c 507904))))

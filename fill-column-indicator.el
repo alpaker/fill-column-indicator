@@ -164,8 +164,6 @@
 
 ;; o Compatibility with non-nil `show-trailing-whitespace.'
 
-;; o Compatibility with `vline-mode'.
-
 ;;; Code:
 
 (unless (version<= "22" emacs-version)

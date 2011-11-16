@@ -143,4 +143,3 @@ Todo
 
 * Compatibility with non-nil `show-trailing-whitespace`.
 
-* Compatibility with `vline-mode`.

@@ -95,6 +95,19 @@ Troubleshooting
   black.  Explicitly setting `fci-rule-image-format` to a different value
   will usually resolve such issues.
 
+* Fci-mode in not currently compatible with Emacs's
+  `show-trailing-whitespace' feature (given the way the latter is
+  implemented, such compatilibility is going to be hard to achieve).  A
+  workaround is to configure `whitespace-mode' to replicate the
+  functionality of show-trailing-whitespace.  This can be done with the
+  following setting:
+
+    (setq whitespace-style '(face trailing))
+
+  With this, whitespace-mode produces the same basic effect as a non-nil
+  value of show-trailing-whitespace, and compatibility with fci-mode is not
+  a problem.
+
 Known Issues
 ============
 

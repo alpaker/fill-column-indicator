@@ -142,3 +142,5 @@ Todo
 * Accommodate linum-mode more robustly.
 
 * Compatibility with non-nil `show-trailing-whitespace`.
+
+* Compatibility with `vline-mode`.

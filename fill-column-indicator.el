@@ -3,7 +3,7 @@
 ;; Copyright (c) 2011 Alp Aker
 
 ;; Author: Alp Aker <alp.tekin.aker@gmail.com>
-;; Version: 1.74
+;; Version: 1.75
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or
@@ -163,6 +163,8 @@
 ;; o Accommodate linum-mode more robustly.
 
 ;; o Compatibility with non-nil `show-trailing-whitespace.'
+
+;; o Compatibility with `vline-mode'.
 
 ;;; Code:
 

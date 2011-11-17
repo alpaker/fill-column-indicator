@@ -33,6 +33,9 @@ Configuration
   value can be any valid color name.  The rule's width in pixels is
   determined by the variable `fci-rule-width`; the default value is 2.
 
+* The rule can be drawn as a solid or dashed line, controlled by the
+  variable `fci-rule-use-dashes'.
+
 * The image formats fci-mode can use are XPM, PBM, and XBM.  If Emacs has
   been compiled with the appropriate library it uses XPM images by default;
   if not it uses PBM images, which are natively supported.  You can specify a

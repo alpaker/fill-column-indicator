@@ -44,13 +44,17 @@
 
 ;; By default, fci-mode draws its vertical indicator at the fill column.  If
 ;; you'd like it to be drawn at another column, set `fci-rule-column' to a
-;; different value.  The default behavior is specified by setting
-;; `fci-rule-column' to nil.
+;; different value.  This variable becomes buffer-local when set, so you can
+;; have a different value for different modes.  The default behavior is
+;; specified by setting `fci-rule-column' to nil.
 
 ;; On graphical displays the fill-column rule is drawn using a bitmap
 ;; image.  Its color is controlled by the variable `fci-rule-color', whose
 ;; value can be any valid color name.  The rule's width in pixels is
 ;; determined by the variable `fci-rule-width'; the default value is 2.
+;;
+;; The rule can be drawn as a solid or dashed line, controlled by the
+;; variable `fci-rule-use-dashes'.
 
 ;; The image formats fci-mode can use are XPM, PBM, and XBM.  If Emacs has
 ;; been compiled with the appropriate library it uses XPM images by default;
@@ -194,6 +198,7 @@ function `fci-mode' is run."
   :type '(choice (symbol :tag "Use the fill column" 'fill-column)
                  (integer :tag "Use a custom column"
                           :match (lambda (w val) (fci-posint-p val)))))
+(make-variable-buffer-local 'fci-rule-column)
 
 (defcustom fci-rule-color "#cccccc"
   "Color used to draw the fill-column rule.
@@ -226,6 +231,16 @@ function `fci-mode' is run."
   :type '(choice (symbol :tag "XPM" 'xpm)
                  (symbol :tag "PBM" 'pbm)
                  (symbol :tag "XBM" 'xbm)))
+
+(defcustom fci-rule-use-dashes t
+  "Whether to show the fill-column rule as dashes or as a solid line.
+This has no effect on non-graphical displays.
+
+Changes to this variable do not take effect until the mode
+function `fci-mode' is run."
+  :tag "Fill-Column Rule Use Dashes"
+  :group 'fill-column-indicator
+  :type 'boolean)
 
 (defcustom fci-rule-character ?|
   "Character use to draw the fill-column rule on character terminals.
@@ -434,6 +449,12 @@ file.  (See the latter for tips on troubleshooting.)"
     (dolist (var fci-internal-vars)
       (set var nil))))
 
+(defun turn-on-fci-mode ()
+  "Turn on Fill Column Indicator mode.
+Useful as a hook function"
+  (interactive)
+  (fci-mode 1))
+
 ;;; ---------------------------------------------------------------------
 ;;; Enabling
 ;;; ---------------------------------------------------------------------
@@ -529,12 +550,19 @@ file.  (See the latter for tips on troubleshooting.)"
 (defun fci-make-xbm-img ()
   "Return an image descriptor for the fill-column rule in XBM format."
   (let* ((img-width (* 8 (/ (+ fci-char-width 7) 8)))
-         (row-pixels (make-bool-vector img-width nil))
-         (raster (make-vector fci-char-height row-pixels))
+         (vmargin (/ fci-char-height 2.0))
+         (top-margin (floor vmargin))
+         (bottom-margin (ceiling vmargin))
+         (on-row-pixels (make-bool-vector img-width nil))
+         (off-row-pixels (make-bool-vector img-width nil))
+         (raster (if fci-rule-use-dashes
+		     (vconcat (make-vector top-margin on-row-pixels)
+			      (make-vector bottom-margin off-row-pixels))
+		   (make-vector fci-char-height on-row-pixels)))
          (rule-width (min fci-rule-width fci-char-width))
          (left-margin (/ (- img-width rule-width) 2)))
     (dotimes (i rule-width)
-      (aset row-pixels (+ i left-margin) t))
+      (aset on-row-pixels (+ i left-margin) t))
     `(image :type xbm
             :data ,raster
             :foreground ,fci-rule-color
@@ -548,17 +576,25 @@ file.  (See the latter for tips on troubleshooting.)"
   (let* ((height-str (number-to-string fci-char-height))
          (width-str (number-to-string fci-char-width))
          (rule-width (min fci-rule-width fci-char-width))
-         (margin (/ (- fci-char-width rule-width) 2.0))
-         (left-margin (floor margin))
-         (right-margin (ceiling margin))
+         (hmargin (/ (- fci-char-width rule-width) 2.0))
+         (left-margin (floor hmargin))
+         (right-margin (ceiling hmargin))
+         (vmargin (/ fci-char-height 2.0))
+         (top-margin (floor vmargin))
+         (bottom-margin (ceiling vmargin))
          (identifier "P1\n")
          (dimens (concat width-str " " height-str "\n"))
-         (left-pixels (mapconcat #'identity (make-list left-margin "0") " "))
-         (rule-pixels (mapconcat #'identity (make-list rule-width "1") " "))
-         (right-pixels (mapconcat #'identity (make-list right-margin "0") " "))
-         (row-pixels (concat left-pixels " " rule-pixels " " right-pixels))
+         (on-row-pixels (mapconcat #'identity
+				   (append (make-list left-margin "0")
+					   (make-list rule-width "1")
+					   (make-list right-margin "0"))
+				   " "))
+         (off-row-pixels (mapconcat #'identity (make-list fci-char-width "0") " "))
          (raster (mapconcat #'identity
-                            (make-list fci-char-height row-pixels)
+			    (if fci-rule-use-dashes
+				(append (make-list top-margin on-row-pixels)
+					(make-list bottom-margin off-row-pixels))
+			      (make-list fci-char-height onrow-pixels))
                             "\n"))
          (data (concat identifier dimens raster)))
     `(image :type pbm
@@ -572,20 +608,29 @@ file.  (See the latter for tips on troubleshooting.)"
   (let* ((height-str (number-to-string fci-char-height))
          (width-str (number-to-string fci-char-width))
          (rule-width (min fci-rule-width fci-char-width))
-         (margin (/ (- fci-char-width rule-width) 2.0))
-         (left-margin (floor margin))
-         (right-margin (ceiling margin))
+         (hmargin (/ (- fci-char-width rule-width) 2.0))
+         (left-margin (floor hmargin))
+         (right-margin (ceiling hmargin))
+         (vmargin (/ fci-char-height 2.0))
+         (top-margin (floor vmargin))
+         (bottom-margin (ceiling vmargin))
          (identifier "/* XPM */\nstatic char *rule[] = {\n")
          (dims (concat "\"" width-str " " height-str " 2 1\",\n"))
-         (color-spec (concat "\"1 c " fci-rule-color "\",\n \"0 c None\",\n"))
-         (row-pixels (concat "\""
-                             (make-string left-margin ?0)
-                             (make-string rule-width ?1)
-                             (make-string right-margin ?0)
-                             "\",\n"))
+         (color-spec (concat "\"1 c " fci-rule-color "\",\n\"0 c None\",\n"))
+         (on-row-pixels (concat "\""
+				(make-string left-margin ?0)
+				(make-string rule-width ?1)
+				(make-string right-margin ?0)
+				"\",\n"))
+         (off-row-pixels (concat "\""
+				 (make-string fci-char-width ?0)
+				 "\",\n"))
          (raster (mapconcat #'identity
-                            (make-list fci-char-height row-pixels)
-                            ""))
+			    (if fci-rule-use-dashes
+				(append (make-list top-margin on-row-pixels)
+					(make-list bottom-margin off-row-pixels))
+			      (make-list fci-char-height on-row-pixels))
+			    ""))
          (end "};")
          (data (concat identifier dims color-spec raster end)))
     `(image :type xpm

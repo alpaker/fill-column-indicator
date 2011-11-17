@@ -447,6 +447,12 @@ file.  (See the latter for tips on troubleshooting.)"
     (dolist (var fci-internal-vars)
       (set var nil))))
 
+(defun turn-on-fci-mode ()
+  "Turn on Fill Column Indicator mode.
+Useful as a hook function"
+  (interactive)
+  (fci-mode 1))
+
 ;;; ---------------------------------------------------------------------
 ;;; Enabling
 ;;; ---------------------------------------------------------------------

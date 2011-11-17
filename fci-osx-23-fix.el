@@ -1,6 +1,6 @@
 ;;; fci-osx-23-fix.el --- workaround for fci-mode on Mac OS X, v23.0-2
 
-;; Copyright (c) 2011 Alp Aker 
+;; Copyright (c) 2011 Alp Aker
 
 ;; Author: Alp Aker <alp.tekin.aker@gmail.com>
 ;; Version: 1.61
@@ -29,7 +29,7 @@
 ;;
 ;;   (require 'fci-osx-23-fix)
 ;;
-;; in your .emacs.  
+;; in your .emacs.
 
 (require 'fill-column-indicator)
 
@@ -37,22 +37,22 @@
 (make-variable-buffer-local 'fci-nextstep-23-hack-cache)
 
 (defun fci-nextstep-23-hack ()
-  (when fci-nextstep-23-hack-cache 
-    (overlay-put fci-nextstep-23-hack-cache 
+  (when fci-nextstep-23-hack-cache
+    (overlay-put fci-nextstep-23-hack-cache
                  'after-string
                  (overlay-get fci-nextstep-23-hack-cache 'fci-after-string))
     (setq fci-nextstep-23-hack-cache nil))
   (when (and (not fci-newline-sentinel)
              (= (current-column) fci-limit)
-						 (setq fci-nextstep-23-hack-cache (fci-overlay-at-point)))
+             (setq fci-nextstep-23-hack-cache (fci-overlay-at-point)))
     (overlay-put fci-nextstep-23-hack-cache 'fci-after-string
                  (overlay-get fci-nextstep-23-hack-cache 'after-string))
     (overlay-put fci-nextstep-23-hack-cache 'after-string nil)))
 
 (defun fci-overlay-at-point ()
-	(car (fci-get-overlays-region (point) (point))))
+  (car (fci-get-overlays-region (point) (point))))
 
-(add-to-list 'fci-hook-assignments 
+(add-to-list 'fci-hook-assignments
              '(post-command-hook . fci-nextstep-23-hack))
 
 (provide 'fci-osx-23-fix)

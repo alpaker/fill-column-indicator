@@ -358,7 +358,7 @@ U+E000-U+F8FF, inclusive)."
     (longlines-mode-hook . fci-full-update)))
 
 ;; The display spec used in overlay before strings to pad out the rule to the
-;; fill-column.  
+;; fill-column.
 (defconst fci-padding-display
   '((when (fci-overlay-check buffer-position)
       . (space :align-to fci-column))
@@ -557,8 +557,8 @@ file.  (See the latter for tips on troubleshooting.)"
          (rule-pixels (mapconcat #'identity (make-list rule-width "1") " "))
          (right-pixels (mapconcat #'identity (make-list right-margin "0") " "))
          (row-pixels (concat left-pixels " " rule-pixels " " right-pixels))
-         (raster (mapconcat #'identity 
-                            (make-list fci-char-height row-pixels) 
+         (raster (mapconcat #'identity
+                            (make-list fci-char-height row-pixels)
                             "\n"))
          (data (concat identifier dimens raster)))
     `(image :type pbm
@@ -583,7 +583,7 @@ file.  (See the latter for tips on troubleshooting.)"
                              (make-string rule-width ?1)
                              (make-string right-margin ?0)
                              "\",\n"))
-         (raster (mapconcat #'identity 
+         (raster (mapconcat #'identity
                             (make-list fci-char-height row-pixels)
                             ""))
          (end "};")
@@ -605,7 +605,7 @@ file.  (See the latter for tips on troubleshooting.)"
                 'cursor cursor
                 'display
                 (if img
-                    `((when (and (not (display-images-p)) 
+                    `((when (and (not (display-images-p))
                                  (fci-overlay-check buffer-position))
                         . ,(propertize str 'cursor cursor))
                       (when (fci-overlay-check buffer-position)
@@ -660,7 +660,7 @@ file.  (See the latter for tips on troubleshooting.)"
       (setq buffer-display-table nil))))
 
 ;;; ---------------------------------------------------------------------
-;;; Drawing and Erasing 
+;;; Drawing and Erasing
 ;;; ---------------------------------------------------------------------
 
 (defun fci-overlay-check (pos)
@@ -682,20 +682,20 @@ file.  (See the latter for tips on troubleshooting.)"
 
 (defun fci-get-overlays-region (start end)
   "Return all overlays between START and END displaying the fill-column rule."
-  (delq nil (mapcar #'(lambda (o) (if (overlay-get o 'fci) o)) 
+  (delq nil (mapcar #'(lambda (o) (if (overlay-get o 'fci) o))
                     (overlays-in start end))))
 
 (defun fci-delete-unneeded ()
   "Erase the fill-column rule at buffer positions not visible in any window."
   (let ((olays (fci-get-overlays-region (point-min) (point-max)))
-        (ranges (mapcar #'(lambda (w) 
+        (ranges (mapcar #'(lambda (w)
                             (cons (window-start w) (window-end w t)))
                         (fci-get-buffer-windows)))
         pos)
     (dolist (o olays)
       (setq pos (overlay-start o))
-      (unless (memq t (mapcar #'(lambda (range) 
-                                  (and (<= (car range) pos) 
+      (unless (memq t (mapcar #'(lambda (range)
+                                  (and (<= (car range) pos)
                                        (< pos (cdr range))))
                               ranges))
         (delete-overlay o)))))
@@ -718,7 +718,7 @@ file.  (See the latter for tips on troubleshooting.)"
       (setq cc (current-column)
             o (make-overlay (match-beginning 0) (match-beginning 0)))
       (overlay-put o 'fci t)
-      (cond 
+      (cond
        ((< cc fci-limit)
         (overlay-put o 'after-string fci-pre-limit-string))
        ((> cc fci-limit)
@@ -759,7 +759,7 @@ file.  (See the latter for tips on troubleshooting.)"
           (dolist (win (fci-get-buffer-windows))
             ;; Do not ask for an updated value of window-end.
             (setq win-end (window-end win))
-            (when (and (< 0 (- (min win-end end) 
+            (when (and (< 0 (- (min win-end end)
                                (max (window-start win) start)))
                        (< max-end win-end))
               (setq max-end win-end)))
@@ -770,10 +770,10 @@ file.  (See the latter for tips on troubleshooting.)"
               (goto-char start)
               (while (search-forward "\n" end t)
                 (setq lossage (1+ lossage))))
-            (fci-redraw-region max-end 
-                               (save-excursion 
+            (fci-redraw-region max-end
+                               (save-excursion
                                  (goto-char max-end)
-                                 (line-beginning-position lossage)) 
+                                 (line-beginning-position lossage))
                                nil)))))))
 
 ;; If N windows display the buffer, then window-configuration-change-hook
@@ -790,7 +790,7 @@ file.  (See the latter for tips on troubleshooting.)"
   (overlay-recenter (point-max))
   (fci-delete-unneeded)
   (let (start end)
-    (fci-sanitize-actions 
+    (fci-sanitize-actions
      ;; If some windows on this buffer overlap, we end up redrawing the rule
      ;; in the overlapped area multiple times, but it's faster to do that
      ;; than do the computations needed to avoid such redrawing.
@@ -825,13 +825,13 @@ file.  (See the latter for tips on troubleshooting.)"
 ;;    horizontal scrolling.  We detect such situations and force a return
 ;;    from hscrolling to bring our requested cursor position back into view.
 ;; These are all fast tests, so despite the large remit this function
-;; doesn't have any effect on editing speed. 
+;; doesn't have any effect on editing speed.
 (defun fci-post-command-check ()
   (cond
    ((not (and buffer-display-table
               (equal (aref buffer-display-table 10) fci-newline-sentinel)))
     (setq fci-display-table-processed nil)
-    (fci-mode 1)) 
+    (fci-mode 1))
    ((and (< 1 (frame-char-width))
          (not fci-always-use-textual-rule)
          (not (and (= (frame-char-width) fci-char-width)
@@ -851,6 +851,3 @@ file.  (See the latter for tips on troubleshooting.)"
 (provide 'fill-column-indicator)
 
 ;;; fill-column-indicator.el ends here
-
-
-

@@ -44,8 +44,9 @@
 
 ;; By default, fci-mode draws its vertical indicator at the fill column.  If
 ;; you'd like it to be drawn at another column, set `fci-rule-column' to a
-;; different value.  The default behavior is specified by setting
-;; `fci-rule-column' to nil.
+;; different value.  This variable becomes buffer-local when set, so you can
+;; have a different value for different modes.  The default behavior is
+;; specified by setting `fci-rule-column' to nil.
 
 ;; On graphical displays the fill-column rule is drawn using a bitmap
 ;; image.  Its color is controlled by the variable `fci-rule-color', whose
@@ -197,6 +198,7 @@ function `fci-mode' is run."
   :type '(choice (symbol :tag "Use the fill column" 'fill-column)
                  (integer :tag "Use a custom column"
                           :match (lambda (w val) (fci-posint-p val)))))
+(make-variable-buffer-local 'fci-rule-column)
 
 (defcustom fci-rule-color "#cccccc"
   "Color used to draw the fill-column rule.

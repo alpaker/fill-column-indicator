@@ -3,7 +3,7 @@
 ;; Copyright (c) 2011 Alp Aker
 
 ;; Author: Alp Aker <alp.tekin.aker@gmail.com>
-;; Version: 1.75
+;; Version: 1.76
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or
@@ -43,10 +43,11 @@
 ;; =============
 
 ;; By default, fci-mode draws its vertical indicator at the fill column.  If
-;; you'd like it to be drawn at another column, set `fci-rule-column' to a
-;; different value.  This variable becomes buffer-local when set, so you can
-;; have a different value for different modes.  The default behavior is
-;; specified by setting `fci-rule-column' to nil.
+;; you'd like it to be drawn at another column, set `fci-rule-column' to the
+;; column number.  This variable becomes buffer-local when set, so you can
+;; use different value for different modes.  The default behavior (drawing
+;; the rule at the fill column) is specified by setting fci-rule-column to
+;; nil.
 
 ;; On graphical displays the fill-column rule is drawn using a bitmap
 ;; image.  Its color is controlled by the variable `fci-rule-color', whose
@@ -54,7 +55,9 @@
 ;; determined by the variable `fci-rule-width'; the default value is 2.
 ;;
 ;; The rule can be drawn as a solid or dashed line, controlled by the
-;; variable `fci-rule-use-dashes'.
+;; variable `fci-rule-use-dashes'; the default is nil.  The dash appearance
+;; is controlled by `fci-dash-pattern', which is the ratio of dash length to
+;; line height.
 
 ;; The image formats fci-mode can use are XPM, PBM, and XBM.  If Emacs has
 ;; been compiled with the appropriate library it uses XPM images by default;
@@ -198,6 +201,7 @@ function `fci-mode' is run."
   :type '(choice (symbol :tag "Use the fill column" 'fill-column)
                  (integer :tag "Use a custom column"
                           :match (lambda (w val) (fci-posint-p val)))))
+
 (make-variable-buffer-local 'fci-rule-column)
 
 (defcustom fci-rule-color "#cccccc"
@@ -241,6 +245,17 @@ function `fci-mode' is run."
   :tag "Fill-Column Rule Use Dashes"
   :group 'fill-column-indicator
   :type 'boolean)
+
+(defcustom fci-dash-pattern (/ 2 3.0)
+  "When using a dashed rule, ratio of dash length to line height.
+Values less than 0 or greather than 1 are coerced to the nearest
+endpoint of that interval.
+
+Changes to this variable do not take effect until the mode
+function `fci-mode' is run."
+  :tag "Fill-Column Rule Use Dashes"
+  :group 'fill-column-indicator
+  :type 'float)
 
 (defcustom fci-rule-character ?|
   "Character use to draw the fill-column rule on character terminals.
@@ -383,6 +398,10 @@ U+E000-U+F8FF, inclusive)."
 ;;; Miscellaneous Utilities
 ;;; ---------------------------------------------------------------------
 
+(defun fci-pos-number-p (x)
+  (and (numberp x) 
+       (< 0 x)))
+
 (defun fci-posint-p (x)
   (and (wholenump x)
        (/= 0 x)))
@@ -395,6 +414,11 @@ U+E000-U+F8FF, inclusive)."
          ;; MAX_CHAR in v22 is (0x1F << 14).  We don't worry about
          ;; generic chars.
          (< c 507904))))
+
+(defun fci-get-dash-length ()
+  (if fci-rule-use-dashes
+      (round (* fci-dash-pattern fci-char-height))
+    fci-char-height))
 
 (defun fci-get-buffer-windows ()
   "Return a list of windows displaying the current buffer."
@@ -472,6 +496,7 @@ Useful as a hook function"
                   (,fci-rule-character-color color-defined-p t)
                   (,fci-rule-character fci-character-p)
                   (,fci-blank-char fci-character-p)
+                  (,fci-dash-pattern floatp)
                   (,fci-eol-char fci-character-p))))
     (dolist (check checks)
       (let ((value (nth 0 check))
@@ -550,17 +575,18 @@ Useful as a hook function"
 (defun fci-make-xbm-img ()
   "Return an image descriptor for the fill-column rule in XBM format."
   (let* ((img-width (* 8 (/ (+ fci-char-width 7) 8)))
-         (vmargin (/ fci-char-height 2.0))
+         (rule-width (min fci-rule-width fci-char-width))
+         (left-margin (/ (- img-width rule-width) 2))
+         (dash-length (fci-get-dash-length))
+         (gap-length (- fci-char-height dash-length))
+         (vmargin (/ gap-length 2.0))
          (top-margin (floor vmargin))
          (bottom-margin (ceiling vmargin))
          (on-row-pixels (make-bool-vector img-width nil))
          (off-row-pixels (make-bool-vector img-width nil))
-         (raster (if fci-rule-use-dashes
-		     (vconcat (make-vector top-margin on-row-pixels)
-			      (make-vector bottom-margin off-row-pixels))
-		   (make-vector fci-char-height on-row-pixels)))
-         (rule-width (min fci-rule-width fci-char-width))
-         (left-margin (/ (- img-width rule-width) 2)))
+         (raster (vconcat (make-vector top-margin off-row-pixels)
+                          (make-vector dash-length on-row-pixels)
+                          (make-vector bottom-margin off-row-pixels))))
     (dotimes (i rule-width)
       (aset on-row-pixels (+ i left-margin) t))
     `(image :type xbm
@@ -579,22 +605,23 @@ Useful as a hook function"
          (hmargin (/ (- fci-char-width rule-width) 2.0))
          (left-margin (floor hmargin))
          (right-margin (ceiling hmargin))
-         (vmargin (/ fci-char-height 2.0))
+         (dash-length (fci-get-dash-length))
+         (gap-length (- fci-char-height dash-length))
+         (vmargin (/ gap-length 2.0))
          (top-margin (floor vmargin))
          (bottom-margin (ceiling vmargin))
          (identifier "P1\n")
          (dimens (concat width-str " " height-str "\n"))
          (on-row-pixels (mapconcat #'identity
-				   (append (make-list left-margin "0")
-					   (make-list rule-width "1")
-					   (make-list right-margin "0"))
-				   " "))
+                                   (nconc (make-list left-margin "0")
+                                          (make-list rule-width "1")
+                                          (make-list right-margin "0"))
+                                   " "))
          (off-row-pixels (mapconcat #'identity (make-list fci-char-width "0") " "))
          (raster (mapconcat #'identity
-			    (if fci-rule-use-dashes
-				(append (make-list top-margin on-row-pixels)
-					(make-list bottom-margin off-row-pixels))
-			      (make-list fci-char-height onrow-pixels))
+                            (nconc (make-list top-margin off-row-pixels)
+                                   (make-list dash-length on-row-pixels)
+                                   (make-list bottom-margin off-row-pixels))
                             "\n"))
          (data (concat identifier dimens raster)))
     `(image :type pbm
@@ -611,26 +638,27 @@ Useful as a hook function"
          (hmargin (/ (- fci-char-width rule-width) 2.0))
          (left-margin (floor hmargin))
          (right-margin (ceiling hmargin))
-         (vmargin (/ fci-char-height 2.0))
+         (dash-length (fci-get-dash-length))
+         (gap-length (- fci-char-height dash-length))
+         (vmargin (/ gap-length 2.0))
          (top-margin (floor vmargin))
          (bottom-margin (ceiling vmargin))
          (identifier "/* XPM */\nstatic char *rule[] = {\n")
          (dims (concat "\"" width-str " " height-str " 2 1\",\n"))
          (color-spec (concat "\"1 c " fci-rule-color "\",\n\"0 c None\",\n"))
          (on-row-pixels (concat "\""
-				(make-string left-margin ?0)
-				(make-string rule-width ?1)
-				(make-string right-margin ?0)
-				"\",\n"))
+                                (make-string left-margin ?0)
+                                (make-string rule-width ?1)
+                                (make-string right-margin ?0)
+                                "\","))
          (off-row-pixels (concat "\""
-				 (make-string fci-char-width ?0)
-				 "\",\n"))
+                                 (make-string fci-char-width ?0)
+                                 "\","))
          (raster (mapconcat #'identity
-			    (if fci-rule-use-dashes
-				(append (make-list top-margin on-row-pixels)
-					(make-list bottom-margin off-row-pixels))
-			      (make-list fci-char-height on-row-pixels))
-			    ""))
+                            (nconc (make-list top-margin off-row-pixels)
+                                    (make-list dash-length on-row-pixels)
+                                    (make-list bottom-margin off-row-pixels))
+                            "\n"))
          (end "};")
          (data (concat identifier dims color-spec raster end)))
     `(image :type xpm
@@ -808,9 +836,9 @@ Useful as a hook function"
                                (max (window-start win) start)))
                        (< max-end win-end))
               (setq max-end win-end)))
-          ;; FIX ME:  Check whether we can just set lossage to (length
-          ;; delenda).
           (unless (= max-end (point-max))
+            ;; FIX ME:  Check whether we can just set lossage to (length
+            ;; delenda).
             (save-excursion
               (goto-char start)
               (while (search-forward "\n" end t)

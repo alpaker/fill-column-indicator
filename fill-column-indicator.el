@@ -398,10 +398,6 @@ U+E000-U+F8FF, inclusive)."
 ;;; Miscellaneous Utilities
 ;;; ---------------------------------------------------------------------
 
-(defun fci-pos-number-p (x)
-  (and (numberp x) 
-       (< 0 x)))
-
 (defun fci-posint-p (x)
   (and (wholenump x)
        (/= 0 x)))
@@ -415,10 +411,14 @@ U+E000-U+F8FF, inclusive)."
          ;; generic chars.
          (< c 507904))))
 
-(defun fci-get-dash-length ()
-  (if fci-rule-use-dashes
-      (round (* fci-dash-pattern fci-char-height))
-    fci-char-height))
+(defun fci-mapper (sep list &rest lists)
+  (mapconcat #'identity (apply 'nconc list (car lists)) sep))
+
+(defun fci-map-space (list &rest lists)
+  (fci-mapper " " list lists))
+
+(defun fci-map-newline (list &rest lists)
+  (fci-mapper "\n" list lists))
 
 (defun fci-get-buffer-windows ()
   "Return a list of windows displaying the current buffer."
@@ -437,9 +437,10 @@ With prefix ARG, turn fci-mode on if and only if ARG is positive.
 
 The following options control the appearance of the fill-column
 rule: `fci-rule-column', `fci-rule-width', `fci-rule-color',
-`fci-rule-character', and `fci-rule-character-color'.  For
-further options, see the Customization menu or the package
-file.  (See the latter for tips on troubleshooting.)"
+`fci-rule-use-dashes', `fci-dash-pattern', `fci-rule-character',
+and `fci-rule-character-color'.  For further options, see the
+Customization menu or the package file.  (See the latter for tips
+on troubleshooting.)"
 
   nil nil nil
 
@@ -474,8 +475,7 @@ file.  (See the latter for tips on troubleshooting.)"
       (set var nil))))
 
 (defun turn-on-fci-mode ()
-  "Turn on Fill Column Indicator mode.
-Useful as a hook function"
+  "Turn on Fill Column Indicator mode unconditionally."
   (interactive)
   (fci-mode 1))
 
@@ -572,99 +572,85 @@ Useful as a hook function"
            (t
             (fci-make-xbm-img)))))))
 
+(defmacro fci-with-rule-parameters (img-width &rest body)
+  "Define various quantites used in generating rule image descriptors."
+  (declare (indent defun))
+  `(let* ((height-str (number-to-string fci-char-height))
+          (width-str (number-to-string fci-char-width))
+          (rule-width (min fci-rule-width fci-char-width))
+          (hmargin (/ (- ,img-width rule-width) 2.0))
+          (left-margin (floor hmargin))
+          (right-margin (ceiling hmargin))
+          (segment-ratio (if fci-rule-use-dashes 
+                              (min 1 (max 0 fci-dash-pattern))
+                            1))
+          (segment-length (round (* segment-ratio fci-char-height)))
+          (gap-length (- fci-char-height segment-length))
+          (vmargin (/ gap-length 2.0))
+          (top-margin (floor vmargin))
+          (bottom-margin (ceiling vmargin)))
+     ,@body))
+
+(defun fci-make-xpm/pbm-raster ()
+  (fci-map-newline (make-list top-margin off-pixels)
+                   (make-list segment-length on-pixels)
+                   (make-list bottom-margin off-pixels)))
+
 (defun fci-make-xbm-img ()
   "Return an image descriptor for the fill-column rule in XBM format."
-  (let* ((img-width (* 8 (/ (+ fci-char-width 7) 8)))
-         (rule-width (min fci-rule-width fci-char-width))
-         (left-margin (/ (- img-width rule-width) 2))
-         (dash-length (fci-get-dash-length))
-         (gap-length (- fci-char-height dash-length))
-         (vmargin (/ gap-length 2.0))
-         (top-margin (floor vmargin))
-         (bottom-margin (ceiling vmargin))
-         (on-row-pixels (make-bool-vector img-width nil))
-         (off-row-pixels (make-bool-vector img-width nil))
-         (raster (vconcat (make-vector top-margin off-row-pixels)
-                          (make-vector dash-length on-row-pixels)
-                          (make-vector bottom-margin off-row-pixels))))
-    (dotimes (i rule-width)
-      (aset on-row-pixels (+ i left-margin) t))
-    `(image :type xbm
-            :data ,raster
-            :foreground ,fci-rule-color
-            :mask heuristic
-            :ascent center
-            :height ,fci-char-height
-            :width ,img-width)))
+  (let ((img-width  (* 8 (/ (+ fci-char-width 7) 8))))
+    (fci-with-rule-parameters img-width
+      (let* ((on-pixels (make-bool-vector img-width nil))
+             (off-pixels (make-bool-vector img-width nil))
+             (raster (vconcat (make-vector top-margin off-pixels)
+                              (make-vector segment-length on-pixels)
+                              (make-vector bottom-margin off-pixels))))
+        (dotimes (i rule-width)
+          (aset on-pixels (+ i left-margin) t))
+        `(image :type xbm
+                :data ,raster
+                :foreground ,fci-rule-color
+                :mask heuristic
+                :ascent center
+                :height ,fci-char-height
+                :width ,img-width)))))
 
 (defun fci-make-pbm-img ()
   "Return an image descriptor for the fill-column rule in PBM format."
-  (let* ((height-str (number-to-string fci-char-height))
-         (width-str (number-to-string fci-char-width))
-         (rule-width (min fci-rule-width fci-char-width))
-         (hmargin (/ (- fci-char-width rule-width) 2.0))
-         (left-margin (floor hmargin))
-         (right-margin (ceiling hmargin))
-         (dash-length (fci-get-dash-length))
-         (gap-length (- fci-char-height dash-length))
-         (vmargin (/ gap-length 2.0))
-         (top-margin (floor vmargin))
-         (bottom-margin (ceiling vmargin))
-         (identifier "P1\n")
-         (dimens (concat width-str " " height-str "\n"))
-         (on-row-pixels (mapconcat #'identity
-                                   (nconc (make-list left-margin "0")
-                                          (make-list rule-width "1")
-                                          (make-list right-margin "0"))
-                                   " "))
-         (off-row-pixels (mapconcat #'identity (make-list fci-char-width "0") " "))
-         (raster (mapconcat #'identity
-                            (nconc (make-list top-margin off-row-pixels)
-                                   (make-list dash-length on-row-pixels)
-                                   (make-list bottom-margin off-row-pixels))
-                            "\n"))
-         (data (concat identifier dimens raster)))
-    `(image :type pbm
-            :data ,data
-            :mask heuristic
-            :foreground ,fci-rule-color
-            :ascent center)))
+  (fci-with-rule-parameters fci-char-width
+    (let* ((identifier "P1\n")
+           (dimens (concat width-str " " height-str "\n"))
+           (on-pixels (fci-map-space (make-list left-margin "0")
+                                     (make-list rule-width "1")
+                                     (make-list right-margin "0")))
+           (off-pixels (fci-map-space (make-list fci-char-width "0")))
+           (raster (fci-make-xpm/pbm-raster))
+           (data (concat identifier dimens raster)))
+      `(image :type pbm
+              :data ,data
+              :mask heuristic
+              :foreground ,fci-rule-color
+              :ascent center))))
 
 (defun fci-make-xpm-img ()
   "Return an image descriptor for the fill-column rule in XPM format."
-  (let* ((height-str (number-to-string fci-char-height))
-         (width-str (number-to-string fci-char-width))
-         (rule-width (min fci-rule-width fci-char-width))
-         (hmargin (/ (- fci-char-width rule-width) 2.0))
-         (left-margin (floor hmargin))
-         (right-margin (ceiling hmargin))
-         (dash-length (fci-get-dash-length))
-         (gap-length (- fci-char-height dash-length))
-         (vmargin (/ gap-length 2.0))
-         (top-margin (floor vmargin))
-         (bottom-margin (ceiling vmargin))
-         (identifier "/* XPM */\nstatic char *rule[] = {\n")
-         (dims (concat "\"" width-str " " height-str " 2 1\",\n"))
-         (color-spec (concat "\"1 c " fci-rule-color "\",\n\"0 c None\",\n"))
-         (on-row-pixels (concat "\""
-                                (make-string left-margin ?0)
-                                (make-string rule-width ?1)
-                                (make-string right-margin ?0)
-                                "\","))
-         (off-row-pixels (concat "\""
-                                 (make-string fci-char-width ?0)
-                                 "\","))
-         (raster (mapconcat #'identity
-                            (nconc (make-list top-margin off-row-pixels)
-                                    (make-list dash-length on-row-pixels)
-                                    (make-list bottom-margin off-row-pixels))
-                            "\n"))
-         (end "};")
-         (data (concat identifier dims color-spec raster end)))
-    `(image :type xpm
-            :data ,data
-            :mask heuristic
-            :ascent center)))
+  (fci-with-rule-parameters fci-char-width
+    (let* ((identifier "/* XPM */\nstatic char *rule[] = {\n")
+           (dims (concat "\"" width-str " " height-str " 2 1\",\n"))
+           (color-spec (concat "\"1 c " fci-rule-color "\",\n\"0 c None\",\n"))
+           (on-pixels (concat "\""
+                              (make-string left-margin ?0)
+                              (make-string rule-width ?1)
+                              (make-string right-margin ?0)
+                              "\","))
+           (off-pixels (concat "\"" (make-string fci-char-width ?0) "\","))
+           (raster (fci-make-xpm/pbm-raster))
+           (end "};")
+           (data (concat identifier dims color-spec raster end)))
+      `(image :type xpm
+              :data ,data
+              :mask heuristic
+              :ascent center))))
 
 ;; Generate the display spec for the rule.  Basic idea is to use a "cascading
 ;; display property" to display the textual rule if the display doesn't
@@ -676,17 +662,16 @@ Useful as a hook function"
   (let ((cursor (if (and (not pre) (not fci-newline-sentinel)) 1)))
     (propertize blank
                 'cursor cursor
-                'display
-                (if img
-                    `((when (and (not (display-images-p))
-                                 (fci-overlay-check buffer-position))
-                        . ,(propertize str 'cursor cursor))
-                      (when (fci-overlay-check buffer-position)
-                        . ,img)
-                      (space :width 0))
-                  `((when (fci-overlay-check buffer-position)
-                      . ,(propertize str 'cursor cursor))
-                    (space :width 0))))))
+                'display (if img
+                             `((when (and (not (display-images-p))
+                                          (fci-overlay-check buffer-position))
+                                 . ,(propertize str 'cursor cursor))
+                               (when (fci-overlay-check buffer-position)
+                                 . ,img)
+                               (space :width 0))
+                           `((when (fci-overlay-check buffer-position)
+                               . ,(propertize str 'cursor cursor))
+                             (space :width 0))))))
 
 (defun fci-make-overlay-strings ()
   "Generate the overlay strings used to display the fill-column rule."
@@ -695,16 +680,16 @@ Useful as a hook function"
          (blank-str (char-to-string fci-blank-char))
          (eol-str (char-to-string fci-eol-char))
          (end-cap (propertize blank-str 'display '(space :width 0)))
-         (pre-post-eol (propertize eol-str
-                                   'cursor 1
-                                   'display (propertize eol-str 'cursor 1)))
+         (pre-or-post-eol (propertize eol-str
+                                      'cursor 1
+                                      'display (propertize eol-str 'cursor 1)))
          (pre-padding (propertize blank-str 'display fci-padding-display))
          (pre-rule (fci-rule-display blank-str img str t))
          (at-rule (fci-rule-display blank-str img str fci-newline-sentinel))
          (at-eol (if fci-newline-sentinel pre-post-eol "")))
-    (setq fci-pre-limit-string (concat pre-post-eol pre-padding pre-rule)
+    (setq fci-pre-limit-string (concat pre-or-post-eol pre-padding pre-rule)
           fci-at-limit-string (concat at-eol at-rule)
-          fci-post-limit-string (concat pre-post-eol end-cap))))
+          fci-post-limit-string (concat pre-or-post-eol end-cap))))
 
 ;;; ---------------------------------------------------------------------
 ;;; Disabling
@@ -738,12 +723,11 @@ Useful as a hook function"
 
 (defun fci-overlay-check (pos)
   "Return true if there is an overlay at POS that fills the background."
-  (not (memq t (mapcar #'(lambda (x)
-                           (and (overlay-get x 'face)
-                                (not (eq (face-attribute
-                                          (overlay-get x 'face)
-                                          :background nil t)
-                                         'unspecified))))
+  (not (memq t (mapcar #'(lambda (x) (and (overlay-get x 'face)
+                                          (not (eq (face-attribute
+                                                    (overlay-get x 'face)
+                                                    :background nil t)
+                                                   'unspecified))))
                        (overlays-at pos)))))
 
 (defmacro fci-sanitize-actions (&rest body)

@@ -563,7 +563,7 @@ on troubleshooting.)"
       (setq fci-char-width (frame-char-width frame)
             fci-char-height (frame-char-height frame))
       ;; No point passing width, height, color etc. directly to the image
-      ;; functions:  those variables have either global or buffer-local
+      ;; functions: those variables have either global or buffer-local
       ;; scope, so the image generating functions can access them directly.
       (if frame
           (cond
@@ -689,7 +689,7 @@ on troubleshooting.)"
          (pre-padding (propertize blank-str 'display fci-padding-display))
          (pre-rule (fci-rule-display blank-str img str t))
          (at-rule (fci-rule-display blank-str img str fci-newline))
-         (at-eol (if fci-newline pre-post-eol "")))
+         (at-eol (if fci-newline pre-or-post-eol "")))
     (setq fci-pre-limit-string (concat pre-or-post-eol pre-padding pre-rule)
           fci-at-limit-string (concat at-eol at-rule)
           fci-post-limit-string (concat pre-or-post-eol end-cap))))

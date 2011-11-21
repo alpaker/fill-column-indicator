@@ -412,7 +412,7 @@ U+E000-U+F8FF, inclusive)."
        (/= 0 x)))
 
 (defun fci-mapconcat (lists sep)
-  (mapconcat #'identity (nconc lists) sep))
+  (mapconcat #'identity (apply 'nconc lists) sep))
 
 (defun fci-map-space (&rest lists)
   (fci-mapconcat lists " "))
@@ -459,7 +459,7 @@ on troubleshooting.)"
                                 (1+ (- fci-column (length fci-saved-eol)))
                               fci-column))
             (fci-make-overlay-strings)
-            (fci-update-all-windows))
+            (fci-update-all-windows 'all-frames))
         (error
          (fci-mode 0)
          (signal (car error) (cdr error))))
@@ -591,8 +591,8 @@ on troubleshooting.)"
 
 ;; Could be a defun, but it's conceptually cleaner not to rely on dynamic
 ;; scoping.
-(defmacro fci-make-xpm/pbm-raster ()
-  '(fci-map-newline (make-list top-margin off-pixels)
+(defun fci-make-xpm/pbm-raster ()
+  (fci-map-newline (make-list top-margin off-pixels)
                     (make-list segment-length on-pixels)
                     (make-list bottom-margin off-pixels)))
 
@@ -822,8 +822,8 @@ on troubleshooting.)"
    (fci-delete-unneeded)
    (fci-redraw-window win start))
 
-(defun fci-update-all-windows ()
-  (dolist (win (fci-get-buffer-windows t))
+(defun fci-update-all-windows (&optional all-frames)
+  (dolist (win (fci-get-buffer-windows all-frames))
     (fci-redraw-window win)))
 
 (defun fci-redraw-frame ()
@@ -834,8 +834,7 @@ on troubleshooting.)"
        (with-current-buffer buf
          (when fci-mode
            (fci-delete-unneeded)
-           (dolist (win (fci-get-buffer-windows))
-             (fci-redraw-window win)))))))
+           (fci-update-all-windows))))))
 
 (defun fci-redraw-window (win &optional start)
   (fci-redraw-region (or start (window-start win)) (window-end win t) 'ignored))

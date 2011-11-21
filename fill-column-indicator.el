@@ -334,6 +334,7 @@ U+E000-U+F8FF, inclusive)."
 
 ;; Record prior state of buffer.
 (defvar fci-saved-line-move-visual nil)
+(defvar fci-line-move-visual-was-buffer-local nil)
 (defvar fci-saved-truncate-lines nil)
 (defvar fci-saved-eol nil)
 (defvar fci-made-display-table nil)
@@ -359,6 +360,7 @@ U+E000-U+F8FF, inclusive)."
 ;; The preceding internal variables need to be buffer local and reset when
 ;; the mode is disabled.
 (defconst fci-internal-vars '(fci-saved-line-move-visual
+                              fci-line-move-visual-was-buffer-local
                               fci-saved-truncate-lines
                               fci-saved-eol
                               fci-made-display-table
@@ -532,7 +534,8 @@ on troubleshooting.)"
     (when (and fci-handle-line-move-visual
                (boundp 'line-move-visual))
       (if (local-variable-p 'line-move-visual)
-          (setq fci-saved-line-move-visual (list line-move-visual)
+          (setq fci-line-move-visual-was-local t
+                fci-saved-line-move-visual line-move-visual
                 line-move-visual nil)
         (set (make-local-variable 'line-move-visual) nil)))
     (when fci-handle-truncate-lines
@@ -700,8 +703,8 @@ on troubleshooting.)"
   (when fci-local-vars-set
     (when (and fci-handle-line-move-visual
                (boundp 'line-move-visual))
-      (if fci-saved-line-move-visual
-          (setq line-move-visual (car fci-saved-line-move-visual))
+      (if fci-line-move-visual-was-local
+          (setq line-move-visual fci-saved-line-move-visual)
         (kill-local-variable 'line-move-visual)))
     (when fci-handle-truncate-lines
       (setq truncate-lines fci-saved-truncate-lines))))

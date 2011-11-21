@@ -809,10 +809,10 @@ on troubleshooting.)"
   (unless (= start end)
     (let ((delenda (fci-get-overlays-region start end)))
       (when delenda
-        (mapc #'delete-overlay delenda)
-        (let ((lossage 0)
+        (let ((lossage (1+ (length delenda)))
               (max-end 0)
               win-end)
+          (mapc #'delete-overlay delenda)
           (dolist (win (fci-get-buffer-windows))
             ;; Do not ask for an updated value of window-end.
             (setq win-end (window-end win))
@@ -821,12 +821,6 @@ on troubleshooting.)"
                        (< max-end win-end))
               (setq max-end win-end)))
           (unless (= max-end (point-max))
-            ;; FIX ME:  Check whether we can just set lossage to (length
-            ;; delenda).
-            (save-excursion
-              (goto-char start)
-              (while (search-forward "\n" end t)
-                (setq lossage (1+ lossage))))
             (fci-redraw-region max-end
                                (save-excursion
                                  (goto-char max-end)

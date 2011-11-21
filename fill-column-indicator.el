@@ -52,7 +52,7 @@
 ;; On graphical displays the fill-column rule is drawn using a bitmap
 ;; image.  Its color is controlled by the variable `fci-rule-color', whose
 ;; value can be any valid color name.  The rule's width in pixels is
-;; determined by the variable `fci-rule-width'; the default value is 2.
+;; determined by the variable `fci-rule-width'; the default value is 1.
 ;;
 ;; The rule can be drawn as a solid or dashed line, controlled by the
 ;; variable `fci-rule-use-dashes'; the default is nil.  The dash appearance
@@ -213,7 +213,7 @@ function `fci-mode' is run."
   :tag "Fill-column rule color"
   :type 'color)
 
-(defcustom fci-rule-width 2
+(defcustom fci-rule-width 1
   "Width in pixels of the fill-column rule on graphical displays.
 Note that a value greater than the default character width is
 treated as equivalent to the default character width.
@@ -236,7 +236,7 @@ function `fci-mode' is run."
                  (symbol :tag "PBM" 'pbm)
                  (symbol :tag "XBM" 'xbm)))
 
-(defcustom fci-rule-use-dashes t
+(defcustom fci-rule-use-dashes nil
   "Whether to show the fill-column rule as dashes or as a solid line.
 This has no effect on non-graphical displays.
 
@@ -246,7 +246,7 @@ function `fci-mode' is run."
   :group 'fill-column-indicator
   :type 'boolean)
 
-(defcustom fci-dash-pattern (/ 2 3.0)
+(defcustom fci-dash-pattern 0.75
   "When using a dashed rule, ratio of dash length to line height.
 Values less than 0 or greather than 1 are coerced to the nearest
 endpoint of that interval.

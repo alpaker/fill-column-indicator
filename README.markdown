@@ -32,10 +32,13 @@ Configuration
 * On graphical displays the fill-column rule is drawn using a bitmap
   image.  Its color is controlled by the variable `fci-rule-color`, whose
   value can be any valid color name.  The rule's width in pixels is
-  determined by the variable `fci-rule-width`; the default value is 2.
+  determined by the variable `fci-rule-width`; the default value is 1.
 
-* The rule can be drawn as a solid or dashed line, controlled by the
-  variable `fci-rule-use-dashes'.
+* The rule can be drawn as a solid or dashed line, controlled by the variable
+  `fci-rule-use-dashes'; the default is nil.  The length of dashes is
+  controlled by `fci-dash-pattern`, which is the ratio of dash length to line
+  height; the default value is 0.75.  (The value should be a number between 0
+  and 1; values outside that interval are coerced to the nearest endpoint.)
 
 * The image formats fci-mode can use are XPM, PBM, and XBM.  If Emacs has
   been compiled with the appropriate library it uses XPM images by default;

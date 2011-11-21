@@ -344,7 +344,7 @@ U+E000-U+F8FF, inclusive)."
 
 ;; Record current state of some quantities, so we can detect changes to them.
 (defvar fci-column nil)
-(defvar fci-newline-sentinel nil)
+(defvar fci-newline nil)
 (defvar fci-tab-width nil)
 (defvar fci-char-width nil)
 (defvar fci-char-height nil)
@@ -365,7 +365,7 @@ U+E000-U+F8FF, inclusive)."
                               fci-display-table-processed
                               fci-local-vars-set
                               fci-column
-                              fci-newline-sentinel
+                              fci-newline
                               fci-tab-width
                               fci-char-width
                               fci-char-height
@@ -455,7 +455,7 @@ on troubleshooting.)"
               (add-hook (car hook) (cdr hook) nil t))
             (setq fci-column (or fci-rule-column fill-column)
                   fci-tab-width tab-width
-                  fci-limit (if fci-newline-sentinel
+                  fci-limit (if fci-newline
                                 (1+ (- fci-column (length fci-saved-eol)))
                               fci-column))
             (fci-make-overlay-strings)
@@ -519,11 +519,11 @@ on troubleshooting.)"
     (let ((glyphs (butlast (append fci-saved-eol nil)))
           eol)
       (if glyphs
-          (setq fci-newline-sentinel [10]
+          (setq fci-newline [10]
                 eol (vconcat glyphs))
-        (setq fci-newline-sentinel nil
+        (setq fci-newline nil
               eol [32]))
-      (aset buffer-display-table 10 fci-newline-sentinel)
+      (aset buffer-display-table 10 fci-newline)
       (aset buffer-display-table fci-eol-char eol))
     (setq fci-display-table-processed t)))
 
@@ -659,7 +659,7 @@ on troubleshooting.)"
 ;; relevant buffer position.
 (defun fci-rule-display (blank img str pre)
   "Generate a display specification for a fill-column rule overlay string."
-  (let ((cursor (if (and (not pre) (not fci-newline-sentinel)) 1)))
+  (let ((cursor (if (and (not pre) (not fci-newline)) 1)))
     (propertize blank
                 'cursor cursor
                 'display (if img
@@ -685,8 +685,8 @@ on troubleshooting.)"
                                       'display (propertize eol-str 'cursor 1)))
          (pre-padding (propertize blank-str 'display fci-padding-display))
          (pre-rule (fci-rule-display blank-str img str t))
-         (at-rule (fci-rule-display blank-str img str fci-newline-sentinel))
-         (at-eol (if fci-newline-sentinel pre-post-eol "")))
+         (at-rule (fci-rule-display blank-str img str fci-newline))
+         (at-eol (if fci-newline pre-post-eol "")))
     (setq fci-pre-limit-string (concat pre-or-post-eol pre-padding pre-rule)
           fci-at-limit-string (concat at-eol at-rule)
           fci-post-limit-string (concat pre-or-post-eol end-cap))))
@@ -886,7 +886,7 @@ on troubleshooting.)"
 (defun fci-post-command-check ()
   (cond
    ((not (and buffer-display-table
-              (equal (aref buffer-display-table 10) fci-newline-sentinel)))
+              (equal (aref buffer-display-table 10) fci-newline)))
     (setq fci-display-table-processed nil)
     (fci-mode 1))
    ((and (< 1 (frame-char-width))

@@ -829,7 +829,7 @@ on troubleshooting.)"
 (defun fci-redraw-frame ()
   "Redraw the fill-column rule in all windows on the selected frame."
   (let* ((wins (window-list (selected-frame) 'no-minibuf))
-        (bufs (remove-duplicates (mapcar #'window-buffer wins))))
+        (bufs (delete-duplicates (mapcar #'window-buffer wins))))
      (dolist (buf bufs)
        (with-current-buffer buf
          (when fci-mode

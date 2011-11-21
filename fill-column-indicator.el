@@ -591,8 +591,8 @@ on troubleshooting.)"
 
 ;; Could be a defun, but it's conceptually cleaner not to rely on dynamic
 ;; scoping.
-(defun fci-make-xpm/pbm-raster ()
-  (fci-map-newline (make-list top-margin off-pixels)
+(defmacro fci-make-xpm/pbm-raster ()
+  '(fci-map-newline (make-list top-margin off-pixels)
                     (make-list segment-length on-pixels)
                     (make-list bottom-margin off-pixels)))
 

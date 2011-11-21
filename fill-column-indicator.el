@@ -379,13 +379,13 @@ U+E000-U+F8FF, inclusive)."
 
 ;; Hooks we use.
 (defconst fci-hook-assignments
-  '((after-change-functions . fci-redraw-region)
-    (before-change-functions . fci-extend-rule-for-deletion)
-    (window-scroll-functions . fci-update-window-for-scroll)
-    (window-configuration-change-hook . fci-schedule-full-update)
-    (post-command-hook . fci-post-command-check)
-    (change-major-mode-hook . (lambda () (fci-mode 0)))
-    (longlines-mode-hook . fci-full-update)))
+  '((after-change-functions fci-redraw-region t)
+    (before-change-functions fci-extend-rule-for-deletion t)
+    (window-scroll-functions fci-update-window-for-scroll t)
+    (window-configuration-change-hook  fci-redraw-frame)
+    (post-command-hook  fci-post-command-check t)
+    (change-major-mode-hook  (lambda () (fci-mode 0)) t)
+    (longlines-mode-hook  fci-full-update t)))
 
 ;; The display spec used in overlay before strings to pad out the rule to the
 ;; fill-column.
@@ -398,10 +398,6 @@ U+E000-U+F8FF, inclusive)."
 ;;; Miscellaneous Utilities
 ;;; ---------------------------------------------------------------------
 
-(defun fci-posint-p (x)
-  (and (wholenump x)
-       (/= 0 x)))
-
 (if (fboundp 'characterp)
     (defalias 'fci-character-p 'characterp)
   ;; For v22.
@@ -410,6 +406,10 @@ U+E000-U+F8FF, inclusive)."
          ;; MAX_CHAR in v22 is (0x1F << 14).  We don't worry about
          ;; generic chars.
          (< c 507904))))
+
+(defun fci-posint-p (x)
+  (and (wholenump x)
+       (/= 0 x)))
 
 (defun fci-mapper (sep list &rest lists)
   (mapconcat #'identity (apply 'nconc list (car lists)) sep))
@@ -420,9 +420,9 @@ U+E000-U+F8FF, inclusive)."
 (defun fci-map-newline (list &rest lists)
   (fci-mapper "\n" list lists))
 
-(defun fci-get-buffer-windows ()
+(defun fci-get-buffer-windows (&optional all-frames)
   "Return a list of windows displaying the current buffer."
-  (get-buffer-window-list (current-buffer) 'no-minibuf t))
+  (get-buffer-window-list (current-buffer) 'no-minibuf all-frames))
 
 ;;; ---------------------------------------------------------------------
 ;;; Mode Definition
@@ -452,7 +452,7 @@ on troubleshooting.)"
             (fci-process-display-table)
             (fci-set-local-vars)
             (dolist (hook fci-hook-assignments)
-              (add-hook (car hook) (cdr hook) nil t))
+              (add-hook (car hook) (nth 1 hook) nil (nth 2 hook)))
             (setq fci-column (or fci-rule-column fill-column)
                   fci-tab-width tab-width
                   fci-limit (if fci-newline
@@ -468,8 +468,7 @@ on troubleshooting.)"
     (fci-restore-display-table)
     (fci-restore-local-vars)
     (dolist (hook fci-hook-assignments)
-      (remove-hook (car hook) (cdr hook) t))
-    (remove-hook 'post-command-hook #'fci-full-update t)
+      (remove-hook (car hook) (nth 1 hook) (nth 2 hook)))
     (fci-delete-overlays-buffer)
     (dolist (var fci-internal-vars)
       (set var nil))))
@@ -555,14 +554,14 @@ on troubleshooting.)"
     (let ((frame (catch 'found-graphic
                    (if (display-images-p)
                        (selected-frame)
-                     (dolist (win (fci-get-buffer-windows))
+                     (dolist (win (fci-get-buffer-windows t))
                        (when (display-images-p (window-frame win))
                          (throw 'found-graphic (window-frame win))))))))
       (setq fci-char-width (frame-char-width frame)
             fci-char-height (frame-char-height frame))
       ;; No point passing width, height, color etc. directly to the image
-      ;; functions:  those variables need to have either global or
-      ;; buffer-local scope, so the image functions can access them directly.
+      ;; functions:  those variables have either global or buffer-local
+      ;; scope, so the image generating functions can access them directly.
       (if frame
           (cond
            ((eq fci-rule-image-format 'xpm)
@@ -581,24 +580,25 @@ on troubleshooting.)"
           (hmargin (/ (- ,img-width rule-width) 2.0))
           (left-margin (floor hmargin))
           (right-margin (ceiling hmargin))
-          (segment-ratio (if fci-rule-use-dashes 
-                              (min 1 (max 0 fci-dash-pattern))
-                            1))
-          (segment-length (round (* segment-ratio fci-char-height)))
+          (segment-ratio (if fci-rule-use-dashes fci-dash-pattern 1))
+          (segment-ratio-coerced (min 1 (max 0 segment-ratio)))
+          (segment-length (round (* segment-ratio-coerced fci-char-height)))
           (gap-length (- fci-char-height segment-length))
           (vmargin (/ gap-length 2.0))
           (top-margin (floor vmargin))
           (bottom-margin (ceiling vmargin)))
      ,@body))
 
-(defun fci-make-xpm/pbm-raster ()
-  (fci-map-newline (make-list top-margin off-pixels)
-                   (make-list segment-length on-pixels)
-                   (make-list bottom-margin off-pixels)))
+;; Could be a defun, but it's conceptually cleaner not to rely on dynamic
+;; scoping.
+(defmacro fci-make-xpm/pbm-raster ()
+  '(fci-map-newline (make-list top-margin off-pixels)
+                    (make-list segment-length on-pixels)
+                    (make-list bottom-margin off-pixels)))
 
 (defun fci-make-xbm-img ()
   "Return an image descriptor for the fill-column rule in XBM format."
-  (let ((img-width  (* 8 (/ (+ fci-char-width 7) 8))))
+  (let ((img-width (* 8 (/ (+ fci-char-width 7) 8))))
     (fci-with-rule-parameters img-width
       (let* ((on-pixels (make-bool-vector img-width nil))
              (off-pixels (make-bool-vector img-width nil))
@@ -744,16 +744,14 @@ on troubleshooting.)"
 
 (defun fci-delete-unneeded ()
   "Erase the fill-column rule at buffer positions not visible in any window."
-  (let ((olays (fci-get-overlays-region (point-min) (point-max)))
-        (ranges (mapcar #'(lambda (w)
-                            (cons (window-start w) (window-end w t)))
-                        (fci-get-buffer-windows)))
+  (let ((ranges (mapcar #'(lambda (w) (cons (window-start w) (window-end w t)))
+                        (fci-get-buffer-windows t)))
+        (olays (fci-get-overlays-region (point-min) (point-max)))
         pos)
     (dolist (o olays)
       (setq pos (overlay-start o))
-      (unless (memq t (mapcar #'(lambda (range)
-                                  (and (<= (car range) pos)
-                                       (< pos (cdr range))))
+      (unless (memq t (mapcar #'(lambda (range) (and (<= (car range) pos)
+                                                     (< pos (cdr range))))
                               ranges))
         (delete-overlay o)))))
 
@@ -791,15 +789,7 @@ on troubleshooting.)"
    (setq end (line-beginning-position 2))
    (fci-delete-overlays-region start end)
    (fci-put-overlays-region start end)))
-
-(defun fci-update-window-for-scroll (win start)
-  "Redraw the fill-column rule in WIN after it has been been scrolled."
-  (fci-sanitize-actions
-   (fci-delete-unneeded)
-   (let ((end (window-end win t)))
-     (fci-delete-overlays-region start end)
-     (fci-put-overlays-region start end))))
-
+ 
 ;; This doesn't determine the strictly minimum amount by which the rule needs
 ;; to be extended, but the amount used is always sufficient, and the extra
 ;; computation involved in determining the genuine minimum is more expensive
@@ -813,7 +803,7 @@ on troubleshooting.)"
               (max-end 0)
               win-end)
           (mapc #'delete-overlay delenda)
-          (dolist (win (fci-get-buffer-windows))
+          (dolist (win (fci-get-buffer-windows t))
             ;; Do not ask for an updated value of window-end.
             (setq win-end (window-end win))
             (when (and (< 0 (- (min win-end end)
@@ -827,29 +817,28 @@ on troubleshooting.)"
                                  (line-beginning-position lossage))
                                nil)))))))
 
-;; If N windows display the buffer, then window-configuration-change-hook
-;; calls this function N times.  Since we only need to run the window update
-;; once, we engage in a bit of misdirection and incur the lesser cost of N-1
-;; unnecessary calls to `add-hook'.
-(defun fci-schedule-full-update ()
-  "Arrange to redraw the fill-column rule in all windows on this buffer."
-  (add-hook 'post-command-hook #'fci-full-update nil t))
+(defun fci-update-window-for-scroll (win start)
+  "Redraw the fill-column rule in WIN after it has been been scrolled."
+  (fci-sanitize-actions
+   (fci-redraw-window win start)
+   (fci-delete-unneeded)))
 
-(defun fci-full-update ()
-  "Redraw the fill-column rule in all windows on this buffer."
-  (remove-hook 'post-command-hook #'fci-full-update t)
-  (overlay-recenter (point-max))
-  (fci-delete-unneeded)
-  (let (start end)
+(defun fci-redraw-frame ()
+  "Redraw the fill-column rule in all windows on the selected frame."
+  (let* ((wins (window-list (selected-frame) 'no-minibuf))
+        (bufs (remove-duplicates (mapcar #'window-buffer wins))))
     (fci-sanitize-actions
-     ;; If some windows on this buffer overlap, we end up redrawing the rule
-     ;; in the overlapped area multiple times, but it's faster to do that
-     ;; than do the computations needed to avoid such redrawing.
-     (dolist (win (fci-get-buffer-windows))
-       (setq start (window-start win)
-             end (window-end win t))
-       (fci-delete-overlays-region start end)
-       (fci-put-overlays-region start end)))))
+     (dolist (buf bufs)
+       (with-current-buffer buf
+         (when fci-mode
+           (fci-delete-unneeded)
+           (dolist (win (fci-get-buffer-windows))
+             (fci-redraw-window win (window-start win)))))))))
+
+(defun fci-redraw-window (win start)
+  (let ((end (window-end win t)))
+    (fci-delete-overlays-region start end)
+    (fci-put-overlays-region start end)))
 
 (defun fci-delete-overlays-buffer ()
   "Delete all overlays displaying the fill-column rule in the current buffer."

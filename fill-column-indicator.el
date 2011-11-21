@@ -385,7 +385,7 @@ U+E000-U+F8FF, inclusive)."
     (window-configuration-change-hook  fci-redraw-frame)
     (post-command-hook  fci-post-command-check t)
     (change-major-mode-hook  (lambda () (fci-mode 0)) t)
-    (longlines-mode-hook  fci-full-update t)))
+    (longlines-mode-hook  fci-update-all-windows t)))
 
 ;; The display spec used in overlay before strings to pad out the rule to the
 ;; fill-column.
@@ -411,14 +411,14 @@ U+E000-U+F8FF, inclusive)."
   (and (wholenump x)
        (/= 0 x)))
 
-(defun fci-mapper (sep list &rest lists)
-  (mapconcat #'identity (apply 'nconc list (car lists)) sep))
+(defun fci-mapconcat (lists sep)
+  (mapconcat #'identity (nconc lists) sep))
 
-(defun fci-map-space (list &rest lists)
-  (fci-mapper " " list lists))
+(defun fci-map-space (&rest lists)
+  (fci-mapconcat lists " "))
 
-(defun fci-map-newline (list &rest lists)
-  (fci-mapper "\n" list lists))
+(defun fci-map-newline (&rest lists)
+  (fci-mapconcat lists "\n"))
 
 (defun fci-get-buffer-windows (&optional all-frames)
   "Return a list of windows displaying the current buffer."
@@ -459,7 +459,7 @@ on troubleshooting.)"
                                 (1+ (- fci-column (length fci-saved-eol)))
                               fci-column))
             (fci-make-overlay-strings)
-            (fci-full-update))
+            (fci-update-all-windows))
         (error
          (fci-mode 0)
          (signal (car error) (cdr error))))
@@ -819,26 +819,26 @@ on troubleshooting.)"
 
 (defun fci-update-window-for-scroll (win start)
   "Redraw the fill-column rule in WIN after it has been been scrolled."
-  (fci-sanitize-actions
-   (fci-redraw-window win start)
-   (fci-delete-unneeded)))
+   (fci-delete-unneeded)
+   (fci-redraw-window win start))
+
+(defun fci-update-all-windows ()
+  (dolist (win (fci-get-buffer-windows t))
+    (fci-redraw-window win)))
 
 (defun fci-redraw-frame ()
   "Redraw the fill-column rule in all windows on the selected frame."
   (let* ((wins (window-list (selected-frame) 'no-minibuf))
         (bufs (remove-duplicates (mapcar #'window-buffer wins))))
-    (fci-sanitize-actions
      (dolist (buf bufs)
        (with-current-buffer buf
          (when fci-mode
            (fci-delete-unneeded)
            (dolist (win (fci-get-buffer-windows))
-             (fci-redraw-window win (window-start win)))))))))
+             (fci-redraw-window win)))))))
 
-(defun fci-redraw-window (win start)
-  (let ((end (window-end win t)))
-    (fci-delete-overlays-region start end)
-    (fci-put-overlays-region start end)))
+(defun fci-redraw-window (win &optional start)
+  (fci-redraw-region (or start (window-start win)) (window-end win t) 'ignored))
 
 (defun fci-delete-overlays-buffer ()
   "Delete all overlays displaying the fill-column rule in the current buffer."

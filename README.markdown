@@ -110,6 +110,7 @@ Troubleshooting
   configuration.  This will provide the same functionality as
   show-trailing-whitespace while remaning compatible with fci-mode.  The
   appropriate whitespace setting is: 
+
       (setq whitespace-style '(face trailing))
 
 

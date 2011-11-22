@@ -97,12 +97,6 @@ Troubleshooting
   non-monospaced font, or (b) your font-lock settings use bold or italics
   and those font variants aren't monospaced.
 
-* Although the XBM and PBM formats are natively supported by Emacs, the
-  implementations are different in different ports and sometimes
-  incomplete; for example, on some ports XBM images are always drawn in
-  black.  Explicitly setting `fci-rule-image-format` to a different value
-  will usually resolve such issues.
-
 * Fci-mode in not currently compatible with Emacs's
   `show-trailing-whitespace` feature (given the way the latter is
   implemented, such compatilibility is going to be hard to achieve).  A
@@ -113,6 +107,11 @@ Troubleshooting
 
       (setq whitespace-style '(face trailing))
 
+* Although the XBM and PBM formats are natively supported by Emacs, the
+  implementations are different in different ports and sometimes
+  incomplete; for example, on some ports XBM images are always drawn in
+  black.  Explicitly setting `fci-rule-image-format` to a different value
+  will usually resolve such issues.
 
 Known Issues
 ============

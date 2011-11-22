@@ -108,9 +108,7 @@ Troubleshooting
   implemented, such compatilibility is going to be hard to achieve).  A
   workaround is to use `whitespace-mode` with an appropriate
   configuration.  This can be done with the following setting:
-
         (setq whitespace-style '(face trailing))
-
   With this, whitespace-mode provides the same basic functionality as
   show-trailing-whitespace, and compatibility with fci-mode is not a problem.
 

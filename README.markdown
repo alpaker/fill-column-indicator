@@ -35,7 +35,7 @@ Configuration
   determined by the variable `fci-rule-width`; the default value is 1.
 
 * The rule can be drawn as a solid or dashed line, controlled by the variable
-  `fci-rule-use-dashes'; the default is t.  The length of dashes is
+  `fci-rule-use-dashes'; the default is nil.  The length of dashes is
   controlled by `fci-dash-pattern`, which is the ratio of dash length to line
   height; the default value is 0.75.  (The value should be a number between 0
   and 1; values outside that interval are coerced to the nearest endpoint.)

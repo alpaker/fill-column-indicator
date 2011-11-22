@@ -3,7 +3,7 @@
 ;; Copyright (c) 2011 Alp Aker
 
 ;; Author: Alp Aker <alp.tekin.aker@gmail.com>
-;; Version: 1.76
+;; Version: 1.77
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or
@@ -55,9 +55,10 @@
 ;; determined by the variable `fci-rule-width'; the default value is 1.
 ;;
 ;; The rule can be drawn as a solid or dashed line, controlled by the
-;; variable `fci-rule-use-dashes'; the default is nil.  The dash appearance
-;; is controlled by `fci-dash-pattern', which is the ratio of dash length to
-;; line height.
+;; variable `fci-rule-use-dashes'; the default is t.  The dash appearance is
+;; controlled by `fci-dash-pattern', which is the ratio of dash length to
+;; line height; the default is 0.75. (The value should be a number between 0
+;; and 1; values outside that interval are coerced to the nearest endpoint.)
 
 ;; The image formats fci-mode can use are XPM, PBM, and XBM.  If Emacs has
 ;; been compiled with the appropriate library it uses XPM images by default;
@@ -386,13 +387,13 @@ U+E000-U+F8FF, inclusive)."
     (window-scroll-functions fci-update-window-for-scroll t)
     (window-configuration-change-hook  fci-redraw-frame)
     (post-command-hook  fci-post-command-check t)
-    (change-major-mode-hook  (lambda () (fci-mode 0)) t)
+    (change-major-mode-hook turn-off-fci-mode t)
     (longlines-mode-hook  fci-update-all-windows t)))
 
 ;; The display spec used in overlay before strings to pad out the rule to the
 ;; fill-column.
 (defconst fci-padding-display
-  '((when (fci-overlay-check buffer-position)
+  '((when (fci-defer-to-overlay-p buffer-position)
       . (space :align-to fci-column))
     (space :width 0)))
 
@@ -422,9 +423,32 @@ U+E000-U+F8FF, inclusive)."
 (defun fci-map-newline (&rest lists)
   (fci-mapconcat lists "\n"))
 
+(defun fci-array-quote (&rest strings)
+  (concat "\"" (apply 'concat strings) "\","))
+
 (defun fci-get-buffer-windows (&optional all-frames)
   "Return a list of windows displaying the current buffer."
   (get-buffer-window-list (current-buffer) 'no-minibuf all-frames))
+
+(defun fci-get-visible-ranges ()
+  (mapcar #'(lambda (w) 
+              (cons (window-start w) (window-end w t)))
+          (fci-get-buffer-windows t)))
+
+(defsubst fci-posn-visible (posn ranges)
+  (memq t (mapcar #'(lambda (range) 
+                      (and (<= (car range) posn) 
+                           (< posn (cdr range))))
+                  ranges)))
+
+(defun fci-overlay-fills-background-p (olay)
+  (and (overlay-get olay 'face)
+       (not (eq (face-attribute (overlay-get olay 'face) :background nil t)
+                'unspecified))))
+
+(defun fci-defer-to-overlay-p (posn)
+  "Return true if there is an overlay at POS that fills the background."
+  (not (memq t (mapcar #'fci-overlay-fills-background-p (overlays-at posn)))))
 
 ;;; ---------------------------------------------------------------------
 ;;; Mode Definition
@@ -476,9 +500,14 @@ on troubleshooting.)"
       (set var nil))))
 
 (defun turn-on-fci-mode ()
-  "Turn on Fill Column Indicator mode unconditionally."
+  "Turn on fci-mode unconditionally."
   (interactive)
   (fci-mode 1))
+
+(defun turn-off-fci-mode ()
+  "Turn off fci-mode unconditionally."
+  (interactive)
+  (fci-mode 0))
 
 ;;; ---------------------------------------------------------------------
 ;;; Enabling
@@ -592,13 +621,6 @@ on troubleshooting.)"
           (bottom-margin (ceiling vmargin)))
      ,@body))
 
-;; Could be a defun, but it's conceptually cleaner not to rely on dynamic
-;; scoping.
-(defmacro fci-make-xpm/pbm-raster ()
-  '(fci-map-newline (make-list top-margin off-pixels)
-                    (make-list segment-length on-pixels)
-                    (make-list bottom-margin off-pixels)))
-
 (defun fci-make-xbm-img ()
   "Return an image descriptor for the fill-column rule in XBM format."
   (let ((img-width (* 8 (/ (+ fci-char-width 7) 8))))
@@ -627,7 +649,9 @@ on troubleshooting.)"
                                      (make-list rule-width "1")
                                      (make-list right-margin "0")))
            (off-pixels (fci-map-space (make-list fci-char-width "0")))
-           (raster (fci-make-xpm/pbm-raster))
+           (raster (fci-map-newline (make-list top-margin off-pixels)
+                                    (make-list segment-length on-pixels)
+                                    (make-list bottom-margin off-pixels)))
            (data (concat identifier dimens raster)))
       `(image :type pbm
               :data ,data
@@ -641,13 +665,13 @@ on troubleshooting.)"
     (let* ((identifier "/* XPM */\nstatic char *rule[] = {\n")
            (dims (concat "\"" width-str " " height-str " 2 1\",\n"))
            (color-spec (concat "\"1 c " fci-rule-color "\",\n\"0 c None\",\n"))
-           (on-pixels (concat "\""
-                              (make-string left-margin ?0)
-                              (make-string rule-width ?1)
-                              (make-string right-margin ?0)
-                              "\","))
-           (off-pixels (concat "\"" (make-string fci-char-width ?0) "\","))
-           (raster (fci-make-xpm/pbm-raster))
+           (on-pixels (fci-array-quote (make-string left-margin ?0)
+                                       (make-string rule-width ?1)
+                                       (make-string right-margin ?0)))
+           (off-pixels (fci-array-quote (make-string fci-char-width ?0)))
+           (raster (fci-map-newline (make-list top-margin off-pixels)
+                                    (make-list segment-length on-pixels)
+                                    (make-list bottom-margin off-pixels)))
            (end "};")
            (data (concat identifier dims color-spec raster end)))
       `(image :type xpm
@@ -667,12 +691,12 @@ on troubleshooting.)"
                 'cursor cursor
                 'display (if img
                              `((when (and (not (display-images-p))
-                                          (fci-overlay-check buffer-position))
+                                          (fci-defer-to-overlay-p buffer-position))
                                  . ,(propertize str 'cursor cursor))
-                               (when (fci-overlay-check buffer-position)
+                               (when (fci-defer-to-overlay-p buffer-position)
                                  . ,img)
                                (space :width 0))
-                           `((when (fci-overlay-check buffer-position)
+                           `((when (fci-defer-to-overlay-p buffer-position)
                                . ,(propertize str 'cursor cursor))
                              (space :width 0))))))
 
@@ -703,7 +727,7 @@ on troubleshooting.)"
   (when fci-local-vars-set
     (when (and fci-handle-line-move-visual
                (boundp 'line-move-visual))
-      (if fci-line-move-visual-was-local
+      (if fci-line-move-visual-was-buffer-local
           (setq line-move-visual fci-saved-line-move-visual)
         (kill-local-variable 'line-move-visual)))
     (when fci-handle-truncate-lines
@@ -724,15 +748,6 @@ on troubleshooting.)"
 ;;; Drawing and Erasing
 ;;; ---------------------------------------------------------------------
 
-(defun fci-overlay-check (pos)
-  "Return true if there is an overlay at POS that fills the background."
-  (not (memq t (mapcar #'(lambda (x) (and (overlay-get x 'face)
-                                          (not (eq (face-attribute
-                                                    (overlay-get x 'face)
-                                                    :background nil t)
-                                                   'unspecified))))
-                       (overlays-at pos)))))
-
 (defmacro fci-sanitize-actions (&rest body)
   "Wrap fill-column rule-drawing functions in protective special forms."
   `(save-match-data
@@ -745,23 +760,24 @@ on troubleshooting.)"
   (delq nil (mapcar #'(lambda (o) (if (overlay-get o 'fci) o))
                     (overlays-in start end))))
 
-(defun fci-delete-unneeded ()
-  "Erase the fill-column rule at buffer positions not visible in any window."
-  (let ((ranges (mapcar #'(lambda (w) (cons (window-start w) (window-end w t)))
-                        (fci-get-buffer-windows t)))
-        (olays (fci-get-overlays-region (point-min) (point-max)))
-        pos)
-    (dolist (o olays)
-      (setq pos (overlay-start o))
-      (unless (memq t (mapcar #'(lambda (range) (and (<= (car range) pos)
-                                                     (< pos (cdr range))))
-                              ranges))
-        (delete-overlay o)))))
-
 (defun fci-delete-overlays-region (start end)
   "Delete overlays displaying the fill-column rule between START and END."
   (mapc #'(lambda (o) (if (overlay-get o 'fci) (delete-overlay o)))
         (overlays-in start end)))
+
+(defun fci-delete-overlays-buffer ()
+  "Delete all overlays displaying the fill-column rule in the current buffer."
+  (save-restriction
+    (widen)
+    (fci-delete-overlays-region (point-min) (point-max))))
+
+(defun fci-delete-unneeded ()
+  "Erase the fill-column rule at buffer positions not visible in any window."
+  (let ((olays (fci-get-overlays-region (point-min) (point-max)))
+        (ranges (fci-get-visible-ranges)))
+    (dolist (o olays)
+      (unless (fci-posn-visible (overlay-start o) ranges)
+        (delete-overlay o)))))
 
 ;; It would be slightly faster to run this backwards from END to START, but
 ;; only if we maintained the overlay center at an early position in the
@@ -792,7 +808,10 @@ on troubleshooting.)"
    (setq end (line-beginning-position 2))
    (fci-delete-overlays-region start end)
    (fci-put-overlays-region start end)))
- 
+
+(defun fci-redraw-window (win &optional start)
+  (fci-redraw-region (or start (window-start win)) (window-end win t) 'ignored))
+
 ;; This doesn't determine the strictly minimum amount by which the rule needs
 ;; to be extended, but the amount used is always sufficient, and the extra
 ;; computation involved in determining the genuine minimum is more expensive
@@ -832,21 +851,12 @@ on troubleshooting.)"
 (defun fci-redraw-frame ()
   "Redraw the fill-column rule in all windows on the selected frame."
   (let* ((wins (window-list (selected-frame) 'no-minibuf))
-        (bufs (delete-duplicates (mapcar #'window-buffer wins))))
-     (dolist (buf bufs)
-       (with-current-buffer buf
-         (when fci-mode
-           (fci-delete-unneeded)
-           (fci-update-all-windows))))))
-
-(defun fci-redraw-window (win &optional start)
-  (fci-redraw-region (or start (window-start win)) (window-end win t) 'ignored))
-
-(defun fci-delete-overlays-buffer ()
-  "Delete all overlays displaying the fill-column rule in the current buffer."
-  (save-restriction
-    (widen)
-    (fci-delete-overlays-region (point-min) (point-max))))
+         (bufs (delete-dups (mapcar #'window-buffer wins))))
+    (dolist (buf bufs)
+      (with-current-buffer buf
+        (when fci-mode
+          (fci-delete-unneeded)
+          (fci-update-all-windows))))))
 
 ;;; ---------------------------------------------------------------------
 ;;; Workarounds

@@ -90,13 +90,6 @@ those characters for some other purpose, set `fci-eol-char` and
 Troubleshooting
 ===============
 
-* Fci-mode is intended to be used with monospaced fonts.  If you're using
-  a monospaced font and the fill-column rule is missing or misaligned on a
-  few lines but otherwise appears normal, then most likely (a) there are
-  non-ascii characters on those lines that are being displayed using a
-  non-monospaced font, or (b) your font-lock settings use bold or italics
-  and those font variants aren't monospaced.
-
 * Fci-mode in not currently compatible with Emacs's
   `show-trailing-whitespace` feature (given the way the latter is
   implemented, such compatilibility is going to be hard to achieve).  A
@@ -105,7 +98,14 @@ Troubleshooting
   show-trailing-whitespace while remaning compatible with fci-mode.  The
   appropriate whitespace setting is: 
 
-      (setq whitespace-style '(face trailing))
+        (setq whitespace-style '(face trailing))
+
+* Fci-mode is intended to be used with monospaced fonts.  If you're using
+  a monospaced font and the fill-column rule is missing or misaligned on a
+  few lines but otherwise appears normal, then most likely (a) there are
+  non-ascii characters on those lines that are being displayed using a
+  non-monospaced font, or (b) your font-lock settings use bold or italics
+  and those font variants aren't monospaced.
 
 * Although the XBM and PBM formats are natively supported by Emacs, the
   implementations are different in different ports and sometimes

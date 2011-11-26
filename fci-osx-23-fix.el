@@ -42,7 +42,7 @@
                  'after-string
                  (overlay-get fci-nextstep-23-hack-cache 'fci-after-string))
     (setq fci-nextstep-23-hack-cache nil))
-  (when (and (not fci-newline-sentinel)
+  (when (and (not fci-newline)
              (= (current-column) fci-limit)
              (setq fci-nextstep-23-hack-cache (fci-overlay-at-point)))
     (overlay-put fci-nextstep-23-hack-cache 'fci-after-string
@@ -53,6 +53,6 @@
   (car (fci-get-overlays-region (point) (point))))
 
 (add-to-list 'fci-hook-assignments
-             '(post-command-hook . fci-nextstep-23-hack))
+             '(post-command-hook fci-nextstep-23-hack t))
 
 (provide 'fci-osx-23-fix)

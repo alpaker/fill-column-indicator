@@ -393,7 +393,7 @@ U+E000-U+F8FF, inclusive)."
 ;; The display spec used in overlay before strings to pad out the rule to the
 ;; fill-column.
 (defconst fci-padding-display
-  '((when (fci-defer-to-overlay-p buffer-position)
+  '((when (fci-no-competing-overlay-p buffer-position)
       . (space :align-to fci-column))
     (space :width 0)))
 
@@ -433,7 +433,7 @@ U+E000-U+F8FF, inclusive)."
 (defun fci-get-visible-ranges ()
   (mapcar #'(lambda (w) 
               (cons (window-start w) (window-end w t)))
-          (fci-get-buffer-windows t)))
+          (fci-get-buffer-windows 'all-frames)))
 
 (defsubst fci-posn-visible (posn ranges)
   (memq t (mapcar #'(lambda (range) 
@@ -446,9 +446,14 @@ U+E000-U+F8FF, inclusive)."
        (not (eq (face-attribute (overlay-get olay 'face) :background nil t)
                 'unspecified))))
 
-(defun fci-defer-to-overlay-p (posn)
-  "Return true if there is an overlay at POS that fills the background."
+(defun fci-no-competing-overlay-p (posn)
+  "Return true if there is no overlay at POS that fills the background."
   (not (memq t (mapcar #'fci-overlay-fills-background-p (overlays-at posn)))))
+
+(defun fci-get-overlays-region (start end)
+  "Return all overlays between START and END displaying the fill-column rule."
+  (delq nil (mapcar #'(lambda (o) (if (overlay-get o 'fci) o))
+                    (overlays-in start end))))
 
 ;;; ---------------------------------------------------------------------
 ;;; Mode Definition
@@ -586,7 +591,7 @@ on troubleshooting.)"
     (let ((frame (catch 'found-graphic
                    (if (display-images-p)
                        (selected-frame)
-                     (dolist (win (fci-get-buffer-windows t))
+                     (dolist (win (fci-get-buffer-windows 'all-frames))
                        (when (display-images-p (window-frame win))
                          (throw 'found-graphic (window-frame win))))))))
       (setq fci-char-width (frame-char-width frame)
@@ -691,12 +696,12 @@ on troubleshooting.)"
                 'cursor cursor
                 'display (if img
                              `((when (and (not (display-images-p))
-                                          (fci-defer-to-overlay-p buffer-position))
+                                          (fci-no-competing-overlay-p buffer-position))
                                  . ,(propertize str 'cursor cursor))
-                               (when (fci-defer-to-overlay-p buffer-position)
+                               (when (fci-no-competing-overlay-p buffer-position)
                                  . ,img)
                                (space :width 0))
-                           `((when (fci-defer-to-overlay-p buffer-position)
+                           `((when (fci-no-competing-overlay-p buffer-position)
                                . ,(propertize str 'cursor cursor))
                              (space :width 0))))))
 
@@ -748,18 +753,6 @@ on troubleshooting.)"
 ;;; Drawing and Erasing
 ;;; ---------------------------------------------------------------------
 
-(defmacro fci-sanitize-actions (&rest body)
-  "Wrap fill-column rule-drawing functions in protective special forms."
-  `(save-match-data
-     (save-excursion
-       (let ((inhibit-point-motion-hooks t))
-         ,@body))))
-
-(defun fci-get-overlays-region (start end)
-  "Return all overlays between START and END displaying the fill-column rule."
-  (delq nil (mapcar #'(lambda (o) (if (overlay-get o 'fci) o))
-                    (overlays-in start end))))
-
 (defun fci-delete-overlays-region (start end)
   "Delete overlays displaying the fill-column rule between START and END."
   (mapc #'(lambda (o) (if (overlay-get o 'fci) (delete-overlay o)))
@@ -803,11 +796,13 @@ on troubleshooting.)"
 
 (defun fci-redraw-region (start end _ignored)
   "Erase and redraw the fill-column rule between START and END."
-  (fci-sanitize-actions
-   (goto-char end)
-   (setq end (line-beginning-position 2))
-   (fci-delete-overlays-region start end)
-   (fci-put-overlays-region start end)))
+  (save-match-data
+    (save-excursion
+      (let ((inhibit-point-motion-hooks t))
+        (goto-char end)
+        (setq end (line-beginning-position 2))
+        (fci-delete-overlays-region start end)
+        (fci-put-overlays-region start end)))))
 
 (defun fci-redraw-window (win &optional start)
   (fci-redraw-region (or start (window-start win)) (window-end win t) 'ignored))
@@ -825,7 +820,7 @@ on troubleshooting.)"
               (max-end 0)
               win-end)
           (mapc #'delete-overlay delenda)
-          (dolist (win (fci-get-buffer-windows t))
+          (dolist (win (fci-get-buffer-windows 'all-frames))
             ;; Do not ask for an updated value of window-end.
             (setq win-end (window-end win))
             (when (and (< 0 (- (min win-end end)

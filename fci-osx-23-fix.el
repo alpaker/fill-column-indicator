@@ -33,26 +33,26 @@
 
 (require 'fill-column-indicator)
 
-(defvar fci-nextstep-23-hack-cache nil)
-(make-variable-buffer-local 'fci-nextstep-23-hack-cache)
+(defvar fci-nextstep-23-hack-overlay nil)
+(make-variable-buffer-local 'fci-nextstep-23-hack-overlay)
 
 (defun fci-nextstep-23-hack ()
-  (when fci-nextstep-23-hack-cache
-    (overlay-put fci-nextstep-23-hack-cache
+  (when fci-nextstep-23-hack-overlay
+    (overlay-put fci-nextstep-23-hack-overlay
                  'after-string
-                 (overlay-get fci-nextstep-23-hack-cache 'fci-after-string))
-    (setq fci-nextstep-23-hack-cache nil))
+                 (overlay-get fci-nextstep-23-hack-overlay 'fci-after-string))
+    (setq fci-nextstep-23-hack-overlay nil))
   (when (and (not fci-newline)
              (= (current-column) fci-limit)
-             (setq fci-nextstep-23-hack-cache (fci-overlay-at-point)))
-    (overlay-put fci-nextstep-23-hack-cache 'fci-after-string
-                 (overlay-get fci-nextstep-23-hack-cache 'after-string))
-    (overlay-put fci-nextstep-23-hack-cache 'after-string nil)))
+             (setq fci-nextstep-23-hack-overlay (fci-overlay-at-point)))
+    (overlay-put fci-nextstep-23-hack-overlay 'fci-after-string
+                 (overlay-get fci-nextstep-23-hack-overlay 'after-string))
+    (overlay-put fci-nextstep-23-hack-overlay 'after-string nil)))
 
 (defun fci-overlay-at-point ()
   (car (fci-get-overlays-region (point) (point))))
 
 (add-to-list 'fci-hook-assignments
-             '(post-command-hook fci-nextstep-23-hack t))
+             '(post-command-hook fci-nextstep-23-hack 'local))
 
 (provide 'fci-osx-23-fix)

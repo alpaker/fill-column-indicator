@@ -587,7 +587,7 @@ on troubleshooting.)"
                                      (make-list rule-width "1")
                                      (make-list right-margin "0")))
            (off-pixels (fci-mapconcat " " (make-list fci-char-width "0")))
-           (raster (fci-mapconcat "\n" 
+           (raster (fci-mapconcat "\n"
                                   (make-list top-margin off-pixels)
                                   (make-list segment-length on-pixels)
                                   (make-list bottom-margin off-pixels)))
@@ -727,14 +727,12 @@ on troubleshooting.)"
     (fci-delete-overlays-region (point-min) (point-max))))
 
 (defsubst fci-posn-visible (posn ranges)
-  (memq t (mapcar #'(lambda (range) 
-                      (and (<= (car range) posn) 
-                           (< posn (cdr range))))
+  (memq t (mapcar #'(lambda (range) (and (<= (car range) posn) 
+                                         (< posn (cdr range))))
                   ranges)))
 
 (defsubst fci-get-visible-ranges ()
-  (mapcar #'(lambda (w) 
-              (cons (window-start w) (window-end w 'updated)))
+  (mapcar #'(lambda (w) (cons (window-start w) (window-end w 'updated)))
           (fci-get-buffer-windows 'all-frames)))
 
 (defun fci-delete-unneeded ()

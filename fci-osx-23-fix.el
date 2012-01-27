@@ -1,9 +1,9 @@
 ;;; fci-osx-23-fix.el --- workaround for fci-mode on Mac OS X, v23.0-2
 
-;; Copyright (c) 2011 Alp Aker
+;; Copyright (c) 2011-2012 Alp Aker
 
 ;; Author: Alp Aker <alp.tekin.aker@gmail.com>
-;; Version: 1.61
+;; Version: 1.78
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or

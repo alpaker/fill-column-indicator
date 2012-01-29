@@ -148,3 +148,12 @@ Todo
 
 * Compatibility with non-nil `show-trailing-whitespace`.
 
+
+Acknowledgements
+================
+
+Thanks to Michael Hoffman, José Francisco Lombera Landa, R. Lange, Joe
+Lisee, Frank Meffert, Jose Ortega Ruiz, sheijk, and an anonymous BT
+subscriber for bug reports and suggestions.  Special thanks to lomew and
+Pär Wieslander for code contributions.
+

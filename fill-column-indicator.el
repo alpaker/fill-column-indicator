@@ -84,16 +84,16 @@
 ;; When `truncate-lines' is nil, the effect of drawing a fill-column rule is
 ;; very odd looking. Indeed, it makes little sense to use a rule to indicate
 ;; the position of the fill column in that case (the positions at which the
-;; fill column falls in the visual display space won't in general be
+;; fill column falls in the visual display space won't, in general, be
 ;; collinear).  For this reason, fci-mode sets truncate-lines to t in buffers
 ;; in which it is enabled and restores it to its previous value when
 ;; disabled.  You can turn this feature off by setting
 ;; `fci-handle-truncate-lines' to nil.
 
 ;; If `line-move-visual' is t, then vertical navigation can behave oddly in
-;; several edge cases while fci-mode is enabled (this is due to a bug in C
-;; code).  Accordingly, fci-mode sets line-move-visual to nil in buffers in
-;; which it is enabled and restores it to its previous value when
+;; several edge cases while fci-mode is enabled (this is due to a bug in
+;; Emacs' C code).  Accordingly, fci-mode sets line-move-visual to nil in
+;; buffers in which it is enabled and restores it to its previous value when
 ;; disabled.  This can be suppressed by setting `fci-handle-line-move-visual'
 ;; to nil.  (But you shouldn't want to do this.  There's no reason to use
 ;; line-move-visual if truncate-lines is t, and it doesn't make sense to use
@@ -101,9 +101,9 @@
 
 ;; Fci-mode needs free use of two characters (specifically, it needs the use
 ;; of two characters whose display table entries it can change
-;; arbitrarily).  By default, it uses the first two characters of the Private
-;; Use Area of the Unicode BMP, viz. U+E000 and U+E001.  If you need to use
-;; those characters for some other purpose, set `fci-eol-char' and
+;; arbitrarily).  Its defualt is to use the first two characters of the
+;; Private Use Area of the Unicode BMP, viz. U+E000 and U+E001.  If you need
+;; to use those characters for some other purpose, set `fci-eol-char' and
 ;; `fci-blank-char' to different values.
 
 ;; Troubleshooting
@@ -165,6 +165,14 @@
 ;; o Accommodate linum-mode more robustly.
 
 ;; o Compatibility with non-nil `show-trailing-whitespace.'
+
+;; Acknowledgements
+;; ================
+
+;; Thanks to Michael Hoffman, José Francisco Lombera Landa, R. Lange, Joe
+;; Lisee, Frank Meffert, Jose Ortega Ruiz, sheijk, and an anonymous BT
+;; subscriber for bug reports and suggestions.  Special thanks to lomew and
+;; Pär Wieslander for code contributions.
 
 ;;; Code:
 

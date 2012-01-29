@@ -152,8 +152,9 @@ Todo
 Acknowledgements
 ================
 
-Thanks to Michael Hoffman, José Francisco Lombera Landa, R. Lange, Joe
-Lisee, Frank Meffert, Jose Ortega Ruiz, sheijk, and an anonymous BT
-subscriber for bug reports and suggestions.  Special thanks to lomew and
-Pär Wieslander for code contributions.
+Thanks to Ami Fischman, Christopher Genovese, Michael Hoffman, José
+Alfredo Romero L., José Lombera, R. Lange, Joe Lisee, Frank Meffert,
+sheijk, and an anonymous BT subscriber for bug reports and
+suggestions.  Special thanks to lomew and Pär Wieslander for code
+contributions.
 

@@ -545,7 +545,7 @@ on troubleshooting.)"
     (propertize (char-to-string fci-rule-character)
                 'face `(:foreground ,color :weight normal :slant normal))))
 
-(defun fci-img-descriptor ()
+(defun fci-make-img-descriptor ()
   "Make an image descriptor for the fill-column rule."
   (unless (or (= 0 fci-char-width)
               fci-always-use-textual-rule)

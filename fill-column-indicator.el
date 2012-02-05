@@ -588,10 +588,10 @@ on troubleshooting.)"
 
 (defun fci-make-pbm-img ()
   "Return an image descriptor for the fill-column rule in PBM format."
-  (fci-with-rule-parameters 
+  (fci-with-rule-parameters
     (let* ((identifier "P1\n")
            (dimens (concat width-str " " height-str "\n"))
-           (on-pixels (fci-mapconcat " " 
+           (on-pixels (fci-mapconcat " "
                                      (make-list left-margin "0")
                                      (make-list rule-width "1")
                                      (make-list right-margin "0")))
@@ -609,11 +609,11 @@ on troubleshooting.)"
 
 (defun fci-make-xpm-img ()
   "Return an image descriptor for the fill-column rule in XPM format."
-  (fci-with-rule-parameters 
+  (fci-with-rule-parameters
     (let* ((identifier "/* XPM */\nstatic char *rule[] = {")
            (dimens (concat "\"" width-str " " height-str " 2 1\","))
            (color-spec (concat "\"1 c " fci-rule-color "\",\n\"0 c None\","))
-           (on-pixels (concat "\"" 
+           (on-pixels (concat "\""
                               (make-string left-margin ?0)
                               (make-string rule-width ?1)
                               (make-string right-margin ?0)
@@ -736,7 +736,7 @@ on troubleshooting.)"
     (fci-delete-overlays-region (point-min) (point-max))))
 
 (defsubst fci-posn-visible (posn ranges)
-  (memq t (mapcar #'(lambda (range) (and (<= (car range) posn) 
+  (memq t (mapcar #'(lambda (range) (and (<= (car range) posn)
                                          (< posn (cdr range))))
                   ranges)))
 

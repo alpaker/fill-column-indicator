@@ -26,25 +26,25 @@ Configuration
   want to fill comments at, for example, column 70, but want a vertical rule
   at column 80 or 100 to indicate the maximum line length for code.)  The
   default behavior (showing the indicator at the fill column) is specified by
-  setting fci-rule-column to nil.  Note that this is a buffer-local variable,
-  so you can have different values for different modes.
+  setting fci-rule-column to nil.  Note that this variable becomes buffer
+  local when set.
 
 * On graphical displays the fill-column rule is drawn using a bitmap
   image.  Its color is controlled by the variable `fci-rule-color`, whose
   value can be any valid color name.  The rule's width in pixels is
   determined by the variable `fci-rule-width`; the default value is 1.
 
-* The rule can be drawn as a solid or dashed line, controlled by the variable
-  `fci-rule-use-dashes`; the default is nil.  The length of dashes is
-  controlled by `fci-dash-pattern`, which is the ratio of dash length to line
-  height; the default value is 0.75.  (The value should be a number between 0
-  and 1; values outside that interval are coerced to the nearest endpoint.)
+* The rule can be drawn as a solid or dashed line, as specified by the
+  variable `fci-rule-use-dashes`; the default is nil.  The length of the
+  dashes is controlled by `fci-dash-pattern`, which is the ratio of dash
+  length to line height; the default value is 0.75.  (The value should be a
+  number between 0 and 1; values outside that interval are coerced to the
+  nearest endpoint.)
 
-* The image formats fci-mode can use are XPM, PBM, and XBM.  If Emacs has
+* The image formats fci-mode can use are XPM and PBM.  If Emacs has
   been compiled with the appropriate library it uses XPM images by default;
   if not it uses PBM images, which are natively supported.  You can specify a
-  particular format by setting `fci-rule-image-format` to either xpm, xpm, or
-  xbm.
+  particular format by setting `fci-rule-image-format` to either `xpm` or `pbm`.
 
 * On character terminals the rule is drawn using the character specified by
   `fci-rule-character`; the default is \`|' (ascii 124).  If
@@ -72,11 +72,11 @@ disabled.  You can turn this feature off by setting
 `fci-handle-truncate-lines` to nil.
 
 If `line-move-visual` is t, then vertical navigation can behave oddly in
-several edge cases while fci-mode is enabled (this is due to a bug in C
-code).  Accordingly, fci-mode sets line-move-visual to nil in buffers in
+several edge cases while fci-mode is enabled (this is due to a bug in Emacs's
+C code).  Accordingly, fci-mode sets line-move-visual to nil in buffers in
 which it is enabled and restores it to its previous value when
-disabled.  This can be suppressed by setting `fci-handle-line-move-visual`
-to nil.  (But you shouldn't want to do this.  There's no reason to use
+disabled.  This can be suppressed by setting `fci-handle-line-move-visual` to
+nil.  (But you shouldn't want to do this.  There's no reason to use
 line-move-visual if truncate-lines is t, and it doesn't make sense to use
 something like fci-mode when truncate-lines is nil.)
 
@@ -90,6 +90,13 @@ those characters for some other purpose, set `fci-eol-char` and
 Troubleshooting
 ===============
 
+* Fci-mode is intended to be used with monospaced fonts.  If you're using
+  a monospaced font and the fill-column rule is missing or misaligned on a
+  few lines but otherwise appears normal, then most likely (a) there are
+  non-ascii characters on those lines that are being displayed using a
+  non-monospaced font, or (b) your font-lock settings use bold or italics
+  and those font variants aren't monospaced.
+
 * Fci-mode in not currently compatible with Emacs's
   `show-trailing-whitespace` feature (given the way the latter is
   implemented, such compatilibility is going to be hard to achieve).  A
@@ -99,19 +106,6 @@ Troubleshooting
   appropriate whitespace setting is: 
 
         (setq whitespace-style '(face trailing))
-
-* Fci-mode is intended to be used with monospaced fonts.  If you're using
-  a monospaced font and the fill-column rule is missing or misaligned on a
-  few lines but otherwise appears normal, then most likely (a) there are
-  non-ascii characters on those lines that are being displayed using a
-  non-monospaced font, or (b) your font-lock settings use bold or italics
-  and those font variants aren't monospaced.
-
-* Although the XBM and PBM formats are natively supported by Emacs, the
-  implementations are different in different ports and sometimes
-  incomplete; for example, on some ports XBM images are always drawn in
-  black.  Explicitly setting `fci-rule-image-format` to a different value
-  will usually resolve such issues.
 
 Known Issues
 ============

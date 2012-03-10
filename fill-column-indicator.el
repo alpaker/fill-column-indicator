@@ -118,7 +118,7 @@
 
 ;; o Fci-mode in not currently compatible with Emacs's
 ;;   `show-trailing-whitespace' feature (given the way the latter is
-;;   implemented, such compatilibility is going to be hard to achieve).  A
+;;   implemented, such compatibility is going to be hard to achieve).  A
 ;;   workaround is to configure `whitespace-mode' to replicate the
 ;;   functionality of show-trailing-whitespace.  This can be done with the
 ;;   following setting:
@@ -620,7 +620,7 @@ rough heuristic.)"
   (fci-with-rule-parameters
     (let* ((identifier "/* XPM */\nstatic char *rule[] = {")
            (dimens (concat "\"" width-str " " height-str " 2 1\","))
-           (color-spec (concat "\"1 c " fci-rule-color "\",\n\"0 c None\","))
+           (color-spec (concat "\"1 c " fci-rule-color "\",\"0 c None\","))
            (on-pixels (concat "\""
                               (make-string left-margin ?0)
                               (make-string rule-width ?1)

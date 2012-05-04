@@ -53,7 +53,7 @@
 ;; image.  Its color is controlled by the variable `fci-rule-color', whose
 ;; value can be any valid color name.  The rule's width in pixels is
 ;; determined by the variable `fci-rule-width'; the default value is 1.
-;;
+
 ;; The rule can be drawn as a solid or dashed line, controlled by the
 ;; variable `fci-rule-use-dashes'; the default is nil.  The dash appearance is
 ;; controlled by `fci-dash-pattern', which is the ratio of dash length to
@@ -202,7 +202,7 @@ Changes to this variable do not take effect until the mode
 function `fci-mode' is run."
   :group 'fill-column-indicator
   :tag "Fill-Column rule column"
-  :type '(choice (symbol :tag "Use the fill column" 'fill-column)
+  :type '(choice (const :tag "Use the fill column" nil)
                  (integer :tag "Use a custom column"
                           :match (lambda (w val) (fci-posint-p val)))))
 
@@ -484,8 +484,8 @@ on troubleshooting.)"
   (unless (memq fci-rule-image-format '(xpm pbm))
     (error "Unrecognized value of `fci-rule-image-format'"))
   ;; If the third element of a binding form is t, then nil is an acceptable
-  ;; value for the variable; otherwise, the variable must satisfy the given
-  ;; predicate.
+  ;; value for the variable; otherwise, the variable value must satisfy the
+  ;; given predicate.
   (let ((checks '((fci-rule-color color-defined-p)
                   (fci-rule-column fci-posint-p t)
                   (fci-rule-width fci-posint-p t)

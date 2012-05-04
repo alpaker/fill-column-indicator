@@ -44,10 +44,12 @@
 
 ;; By default, fci-mode draws its vertical indicator at the fill column.  If
 ;; you'd like it to be drawn at another column, set `fci-rule-column' to the
-;; column number.  This variable becomes buffer local when set, so you can
-;; use different values for different modes.  The default behavior (drawing
-;; the rule at the fill column) is specified by setting fci-rule-column to
-;; nil.
+;; column number.  (A case in which this might be useful is when you want to
+;; fill comments at, for example, column 70, but want a vertical rule at
+;; column 80 or 100 to indicate the maximum line length for code.)  The
+;; default behavior (showing the indicator at the fill column) is specified
+;; by setting fci-rule-column to nil.  Note that this variable becomes buffer
+;; local when set.
 
 ;; On graphical displays the fill-column rule is drawn using a bitmap
 ;; image.  Its color is controlled by the variable `fci-rule-color', whose

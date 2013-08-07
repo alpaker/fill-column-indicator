@@ -5,14 +5,13 @@ facility in Emacs:
 
 ![screenshot](https://github.com/alpaker/Fill-Column-Indicator/raw/master/FciScreenshot.png)
 
-## Please Note
+#### Please Note
 
 There is a small incompatibility between this package and the current stable
 Emacs relase (v24.3).  See [issue #31](https://github.com/alpaker/Fill-Column-Indicator/issues/31) for more
 information.
 
-## Installation and Usage
-
+#### Installation and Usage
 
 Put the package file in your load path and put
 
@@ -23,7 +22,7 @@ in your .emacs.
 To toggle graphical indication of the fill column in a buffer, use the
 command `fci-mode`.
 
-## Configuration
+#### Configuration
 
 * By default fci-mode draws a vertical line at the fill column.  If you'd
   like it to be drawn at a different location, set `fci-rule-column` to the
@@ -64,7 +63,7 @@ These variables (as well as those in the next section) can be given
 buffer-local bindings.
 
 
-## Other Options
+#### Other Options
 
 When `truncate-lines` is nil, the effect of drawing a fill-column rule is
 very odd looking. Indeed, it makes little sense to use a rule to indicate
@@ -91,7 +90,7 @@ Use Area of the Unicode BMP, viz. U+E000 and U+E001.  If you need to use
 those characters for some other purpose, set `fci-eol-char` and
 `fci-blank-char` to different values.
 
-# Troubleshooting
+#### Troubleshooting
 
 * Fci-mode is intended to be used with monospaced fonts.  If you're using
   a monospaced font and the fill-column rule is missing or misaligned on a
@@ -110,7 +109,7 @@ those characters for some other purpose, set `fci-eol-char` and
 
         (setq whitespace-style '(face trailing))
 
-## Known Issues
+#### Known Issues
 
 * The indicator extends only to end of the buffer contents (as opposed to
   running the full length of the editing window).
@@ -135,7 +134,7 @@ those characters for some other purpose, set `fci-eol-char` and
   which can be downloaded from this page.  Directions for its use are given
   in the file header.
 
-### Todo
+#### Todo
 
 * Accommodate non-nil values of `hl-line-sticky-flag` and similar cases.
 

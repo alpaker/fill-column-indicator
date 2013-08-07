@@ -6,14 +6,14 @@ facility in Emacs:
 ![screenshot](https://github.com/alpaker/Fill-Column-Indicator/raw/master/FciScreenshot.png)
 
 Please Note
-===========
+-----------
 
 There is a small incompatibility between this package and the current stable
 Emacs relase (v24.3).  See [issue #31](https://github.com/alpaker/Fill-Column-Indicator/issues/31) for more
 information.
 
 Installation and Usage
-======================
+----------------------
 
 Put the package file in your load path and put
 
@@ -25,7 +25,7 @@ To toggle graphical indication of the fill column in a buffer, use the
 command `fci-mode`.
 
 Configuration
-=============
+-------------
 
 * By default fci-mode draws a vertical line at the fill column.  If you'd
   like it to be drawn at a different location, set `fci-rule-column` to the
@@ -67,7 +67,7 @@ buffer-local bindings.
 
 
 Other Options
-=============
+-------------
 
 When `truncate-lines` is nil, the effect of drawing a fill-column rule is
 very odd looking. Indeed, it makes little sense to use a rule to indicate
@@ -95,7 +95,7 @@ those characters for some other purpose, set `fci-eol-char` and
 `fci-blank-char` to different values.
 
 Troubleshooting
-===============
+---------------
 
 * Fci-mode is intended to be used with monospaced fonts.  If you're using
   a monospaced font and the fill-column rule is missing or misaligned on a
@@ -115,7 +115,7 @@ Troubleshooting
         (setq whitespace-style '(face trailing))
 
 Known Issues
-============
+------------
 
 * The indicator extends only to end of the buffer contents (as opposed to
   running the full length of the editing window).
@@ -141,7 +141,7 @@ Known Issues
   in the file header.
 
 Todo
-====
+----
 
 * Accommodate non-nil values of `hl-line-sticky-flag` and similar cases.
 
@@ -151,7 +151,7 @@ Todo
 
 
 Acknowledgements
-================
+----------------
 
 Thanks to Ami Fischman, Christopher Genovese, Michael Hoffman, José Alfredo
 Romero L., R. Lange, Joe Lisee, José Lombera, Frank Meffert, Mitchell

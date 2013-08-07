@@ -5,6 +5,13 @@ facility in Emacs:
 
 ![screenshot](https://github.com/alpaker/Fill-Column-Indicator/raw/master/FciScreenshot.png)
 
+Please Note
+===========
+
+There is a small incompatibility between this package and the current stable
+Emacs relase (v24.3).  See https://github.com/alpaker/Fill-Column-Indicator/issues/31 for more
+information.
+
 Installation and Usage
 ======================
 

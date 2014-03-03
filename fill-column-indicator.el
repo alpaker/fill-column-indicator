@@ -1,9 +1,9 @@
 ;;; fill-column-indicator.el --- Graphically indicate the fill column
 
-;; Copyright (c) 2011-2012 Alp Aker
+;; Copyright (c) 2011-2014 Alp Aker
 
 ;; Author: Alp Aker <alp.tekin.aker@gmail.com>
-;; Version: 1.85
+;; Version: 1.86
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or

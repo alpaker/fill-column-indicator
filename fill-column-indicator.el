@@ -55,8 +55,7 @@
 ;; fill comments at, for example, column 70, but want a vertical rule at
 ;; column 80 or 100 to indicate the maximum line length for code.)  The
 ;; default behavior (showing the indicator at the fill column) is specified
-;; by setting fci-rule-column to nil.  Note that this variable becomes buffer
-;; local when set.
+;; by setting fci-rule-column to nil.
 
 ;; On graphical displays the fill-column rule is drawn using a bitmap
 ;; image.  Its color is controlled by the variable `fci-rule-color', whose
@@ -214,8 +213,6 @@ function `fci-mode' is run."
   :type '(choice (const :tag "Use the fill column" nil)
                  (integer :tag "Use a custom column"
                           :match (lambda (w val) (fci-posint-p val)))))
-
-(make-variable-buffer-local 'fci-rule-column)
 
 (defcustom fci-rule-color "#cccccc"
   "Color used to draw the fill-column rule.

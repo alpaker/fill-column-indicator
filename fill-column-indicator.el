@@ -489,9 +489,18 @@ on troubleshooting.)"
 
 (defun fci-overlay-fills-background-p (olay)
   "Return true if OLAY specifies a background color."
-  (and (overlay-get olay 'face)
-       (not (eq (face-attribute (overlay-get olay 'face) :background nil t)
-                'unspecified))))
+  ; The value of an overlay's 'face may not be a face, it can be a property list
+  ; or a cons cell.
+  ; see: <http://www.gnu.org/software/emacs/manual/html_node/elisp/Overlay-Properties.html>
+  (when (overlay-get olay 'face)
+    (let ((olay-face (overlay-get olay 'face)))
+      (cond
+       ((or (symbolp olay-face) (stringp olay-face))
+        (not (eq (face-attribute olay-face :background nil t) 'unspecified)))
+       ((consp olay-face)
+        (if (listp (cdr olay-face))
+            (plist-member :background)
+          (eq (car olay-face) 'background-color)))))))
 
 (defun fci-competing-overlay-p (posn)
   "Return true if there is an overlay at POSN that fills the background."

@@ -496,8 +496,8 @@ on troubleshooting.)"
         (if (consp olay-face)
             (if (listp (cdr olay-face))
                 (if (facep (car olay-face))
-                    (not (memq t (mapcar #'(lambda (f) (eq (face-attribute f :background nil t) 'unspecified)))
-                                      olay-face))
+                    (not (memq t (mapcar #'(lambda (f) (eq (face-attribute f :background nil t) 'unspecified))
+                                         olay-face)))
                   (plist-member olay-face :background))
               (eq (car olay-face) 'background-color)))))))
 

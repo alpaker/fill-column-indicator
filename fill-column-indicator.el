@@ -390,13 +390,13 @@ U+E000-U+F8FF, inclusive)."
 
 ;; Hooks we use.
 (defconst fci-hook-assignments
-  '((after-change-functions fci-redraw-region t)
-    (before-change-functions fci-extend-rule-for-deletion t)
-    (window-scroll-functions fci-update-window-for-scroll t)
+  '((after-change-functions fci-redraw-region t t)
+    (before-change-functions fci-extend-rule-for-deletion nil t)
+    (window-scroll-functions fci-update-window-for-scroll nil t)
     (window-configuration-change-hook  fci-redraw-frame)
-    (post-command-hook  fci-post-command-check t)
-    (change-major-mode-hook turn-off-fci-mode t)
-    (longlines-mode-hook  fci-update-all-windows t)))
+    (post-command-hook  fci-post-command-check nil t)
+    (change-major-mode-hook turn-off-fci-mode nil t)
+    (longlines-mode-hook fci-update-all-windows nil t)))
 
 ;;; ---------------------------------------------------------------------
 ;;; Miscellany
@@ -451,7 +451,7 @@ on troubleshooting.)"
             (fci-set-local-vars)
             (fci-get-frame-dimens)
             (dolist (hook fci-hook-assignments)
-              (add-hook (car hook) (nth 1 hook) nil (nth 2 hook)))
+              (apply 'add-hook hook))
             (setq fci-column (or fci-rule-column fill-column)
                   fci-tab-width tab-width
                   fci-limit (if fci-newline
@@ -467,7 +467,7 @@ on troubleshooting.)"
     (fci-restore-display-table)
     (fci-restore-local-vars)
     (dolist (hook fci-hook-assignments)
-      (remove-hook (car hook) (nth 1 hook) (nth 2 hook)))
+      (remove-hook (car hook) (nth 1 hook) (nth 3 hook)))
     (fci-delete-overlays-buffer)
     (dolist (var fci-internal-vars)
       (set var nil))))

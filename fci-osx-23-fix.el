@@ -56,3 +56,8 @@
              '(post-command-hook fci-nextstep-23-hack 'local))
 
 (provide 'fci-osx-23-fix)
+;; Local Variables:
+;; no-byte-compile: t
+;; no-update-autoloads: t
+;; End:
+;;; fci-osx-23-fix ends here

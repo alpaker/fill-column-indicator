@@ -153,18 +153,6 @@
 ;;   support this use case, but thus far there seems to be no demand for
 ;;   it.)
 
-;; o An issue specific to the Mac OS X (NextStep) port, versions 23.0-23.2:
-;;   Emacs won't, in these particular versions, draw a cursor on top of an
-;;   image.  Thus on graphical displays the cursor will disappear when
-;;   positioned directly on top of the fill-column rule.  The best way to
-;;   deal with this is to upgrade to v23.3 or v24 (or downgrade to v22).  If
-;;   that isn't practical, a fix is available via the mini-package
-;;   fci-osx-23-fix.el, which can be downloaded from:
-;;
-;;     github.com/alpaker/Fill-Column-Indicator
-;;
-;;  Directions for its use are given in the file header.
-
 ;; Todo
 ;; ====
 

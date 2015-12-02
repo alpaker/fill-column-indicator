@@ -677,17 +677,19 @@ rough heuristic.)"
          (img (fci-make-img-descriptor))
          (blank-str (char-to-string fci-blank-char))
          (eol-str (char-to-string fci-eol-char))
-         (end-cap (propertize blank-str 'display '(space :width 0)))
+;;         (end-cap (propertize blank-str 'display '(space :width 0)))
          (pre-or-post-eol (propertize eol-str
                                       'cursor t
                                       'display (propertize eol-str 'cursor t)))
          (pre-padding (propertize blank-str 'display fci-padding-display))
          (pre-rule (fci-rule-display blank-str img str t))
          (at-rule (fci-rule-display blank-str img str fci-newline))
-         (at-eol (if fci-newline pre-or-post-eol "")))
+;;         (at-eol (if fci-newline pre-or-post-eol ""))
+         )
     (setq fci-pre-limit-string (concat pre-or-post-eol pre-padding pre-rule)
-          fci-at-limit-string (concat at-eol at-rule)
-          fci-post-limit-string (concat pre-or-post-eol end-cap))))
+          fci-at-limit-string at-rule
+;;          fci-post-limit-string (concat pre-or-post-eol end-cap)
+          )))
 
 ;;; ---------------------------------------------------------------------
 ;;; Disabling
@@ -777,9 +779,10 @@ rough heuristic.)"
       (cond
        ((< cc fci-limit)
         (overlay-put o 'after-string fci-pre-limit-string))
-       ((> cc fci-limit)
-        (overlay-put o 'after-string fci-post-limit-string))
-       (t
+;;        ((> cc fci-limit)
+;;         (overlay-put o 'after-string fci-post-limit-string))
+;;     (t
+       ((= cc fci-limit)
         (overlay-put o 'after-string fci-at-limit-string)))
       (goto-char (match-end 0)))))
 

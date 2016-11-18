@@ -619,13 +619,14 @@ rough heuristic.)"
     (setq fci-char-width (frame-char-width frame)
           fci-char-height (frame-char-height frame))))
 
+(defconst fci-mid-margin 2)
 (defmacro fci-with-rule-parameters (&rest body)
   "Define various quantites used in generating rule image descriptors."
   (declare (indent defun))
   `(let* ((height-str (number-to-string fci-char-height))
           (width-str (number-to-string fci-char-width))
           (rule-width (min fci-rule-width fci-char-width))
-          (hmargin (/ (- fci-char-width rule-width) 2.0))
+          (hmargin (/ (- fci-char-width rule-width rule-width fci-mid-margin) 2.0))
           (left-margin (floor hmargin))
           (right-margin (ceiling hmargin))
           (segment-ratio (if fci-rule-use-dashes fci-dash-pattern 1))
@@ -669,6 +670,8 @@ rough heuristic.)"
            (color-spec (concat "\"1 c " fci-rule-color "\",\"0 c None\","))
            (on-pixels (concat "\""
                               (make-string left-margin ?0)
+                              (make-string rule-width ?1)
+                              (make-string fci-mid-margin ?0)
                               (make-string rule-width ?1)
                               (make-string right-margin ?0)
                               "\","))

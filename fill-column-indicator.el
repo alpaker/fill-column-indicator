@@ -3,7 +3,7 @@
 ;; Copyright (c) 2011-2014 Alp Aker
 
 ;; Author: Alp Aker <alp.tekin.aker@gmail.com>
-;; Version: 1.87
+;; Version: 1.88
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or
@@ -168,8 +168,8 @@
 ;; Thanks to Ami Fischman, Christopher Genovese, Michael Hoffman, José
 ;; Alfredo Romero L., R. Lange, Joe Lisee, José Lombera, Frank Meffert,
 ;; Mitchell Peabody, sheijk, and an anonymous BT subscriber for bug reports
-;; and suggestions.  Special thanks to lomew, John Lamp, David Röthlisberger,
-;; and Pär Wieslander for code contributions.
+;; and suggestions.  Special thanks for code contributions: lomew, John Lamp,
+;; Sean Perry, David Röthlisberger, Pär Wieslander.
 
 ;;; Code:
 

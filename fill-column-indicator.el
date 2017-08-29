@@ -349,10 +349,12 @@ U+E000-U+F8FF, inclusive)."
 
 ;; Data used in setting the fill-column rule that only need to be
 ;; occasionally updated in a given buffer.
+(defvar fci-current-lndw)  ;; short hand for line-number-display-width
 (defvar fci-limit)
 (defvar fci-pre-limit-string)
 (defvar fci-at-limit-string)
 (defvar fci-post-limit-string)
+(defvar fci-padding-display)
 
 ;; The preceding internal variables need to be buffer local and reset when
 ;; the mode is disabled.
@@ -369,6 +371,7 @@ U+E000-U+F8FF, inclusive)."
                               fci-char-width
                               fci-char-height
                               fci-limit
+                              fci-padding-display
                               fci-pre-limit-string
                               fci-at-limit-string
                               fci-post-limit-string))
@@ -409,6 +412,13 @@ U+E000-U+F8FF, inclusive)."
          ;; generic chars.
          (< c 507904))))
 
+(defun fci-determine-padding ()
+  "Decide how much padding the overlay needs.
+When `display-line-numbers` is true, pad by the size of the line number display."
+  (if (and (boundp 'display-line-numbers) display-line-numbers)
+      (+ (line-number-display-width) 2)
+    0))
+
 ;;; ---------------------------------------------------------------------
 ;;; Mode Definition
 ;;; ---------------------------------------------------------------------
@@ -441,10 +451,15 @@ on troubleshooting.)"
             (dolist (hook fci-hook-assignments)
               (apply 'add-hook hook))
             (setq fci-column (or fci-rule-column fill-column)
+                  fci-current-lndw (fci-determine-padding)
                   fci-tab-width tab-width
                   fci-limit (if fci-newline
                                 (1+ (- fci-column (length fci-saved-eol)))
-                              fci-column))
+                              fci-column)
+                  ;; The display spec used in overlay before strings to pad out the rule to the fill-column.
+                  fci-padding-display '((when (not (fci-competing-overlay-p buffer-position))
+                                         . (space :align-to (+ fci-column fci-current-lndw)))
+                                         (space :width 0)))
             (fci-make-overlay-strings)
             (fci-update-all-windows t))
         (error
@@ -492,13 +507,6 @@ on troubleshooting.)"
 (defun fci-competing-overlay-p (posn)
   "Return true if there is an overlay at POSN that fills the background."
   (memq t (mapcar #'fci-overlay-fills-background-p (overlays-at posn))))
-
-;; The display spec used in overlay before strings to pad out the rule to the
-;; fill-column. 
-(defconst fci-padding-display
-  '((when (not (fci-competing-overlay-p buffer-position))
-      . (space :align-to fci-column))
-    (space :width 0)))
 
 ;; Generate the display spec for the rule.  Basic idea is to use a "cascading
 ;; display property" to display the textual rule if the display doesn't

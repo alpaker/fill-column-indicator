@@ -89,15 +89,6 @@
 ;; Other Options
 ;; =============
 
-;; When `truncate-lines' is nil, the effect of drawing a fill-column rule is
-;; very odd looking. Indeed, it makes little sense to use a rule to indicate
-;; the position of the fill column in that case (the positions at which the
-;; fill column falls in the visual display space won't, in general, be
-;; collinear).  For this reason, fci-mode sets truncate-lines to t in buffers
-;; in which it is enabled and restores it to its previous value when
-;; disabled.  You can turn this feature off by setting
-;; `fci-handle-truncate-lines' to nil.
-
 ;; If `line-move-visual' is t, then vertical navigation can behave oddly in
 ;; several edge cases while fci-mode is enabled (this is due to a bug in
 ;; Emacs's C code).  Accordingly, fci-mode sets line-move-visual to nil in
@@ -109,7 +100,7 @@
 
 ;; Fci-mode needs free use of two characters (specifically, it needs the use
 ;; of two characters whose display table entries it can change
-;; arbitrarily).  Its defualt is to use the first two characters of the
+;; arbitrarily).  Its default is to use the first two characters of the
 ;; Private Use Area of the Unicode BMP, viz. U+E000 and U+E001.  If you need
 ;; to use those characters for some other purpose, set `fci-eol-char' and
 ;; `fci-blank-char' to different values.
@@ -285,17 +276,6 @@ function `fci-mode' is run."
   :group 'fill-column-indicator
   :type 'boolean)
 
-(defcustom fci-handle-truncate-lines t
-  "Whether fci-mode should set truncate-lines to t while enabled.
-If non-nil, fci-mode will set truncate-lines to t in buffers in
-which it is enabled, and restore it to its previous value when
-disabled.
-
-Leaving this option set to the default value is recommended."
-  :group 'fill-column-indicator
-  :tag "Locally set truncate-lines to t during fci-mode"
-  :type 'boolean)
-
 (defcustom fci-handle-line-move-visual (version<= "23" emacs-version)
   "Whether fci-mode should set line-move-visual to nil while enabled.
 If non-nil, fci-mode will set line-move-visual to nil in buffers
@@ -332,7 +312,6 @@ U+E000-U+F8FF, inclusive)."
 ;; Record prior state of buffer.
 (defvar fci-saved-line-move-visual)
 (defvar fci-line-move-visual-was-buffer-local)
-(defvar fci-saved-truncate-lines)
 (defvar fci-saved-eol)
 (defvar fci-made-display-table)
 
@@ -360,7 +339,6 @@ U+E000-U+F8FF, inclusive)."
 ;; the mode is disabled.
 (defconst fci-internal-vars '(fci-saved-line-move-visual
                               fci-line-move-visual-was-buffer-local
-                              fci-saved-truncate-lines
                               fci-saved-eol
                               fci-made-display-table
                               fci-display-table-processed
@@ -587,9 +565,6 @@ on troubleshooting.)"
                 fci-saved-line-move-visual line-move-visual
                 line-move-visual nil)
         (set (make-local-variable 'line-move-visual) nil)))
-    (when fci-handle-truncate-lines
-      (setq fci-saved-truncate-lines truncate-lines
-            truncate-lines t))
     (setq fci-local-vars-set t)))
 
 (defun fci-make-rule-string ()
@@ -698,17 +673,19 @@ rough heuristic.)"
          (img (fci-make-img-descriptor))
          (blank-str (char-to-string fci-blank-char))
          (eol-str (char-to-string fci-eol-char))
-         (end-cap (propertize blank-str 'display '(space :width 0)))
+;;         (end-cap (propertize blank-str 'display '(space :width 0)))
          (pre-or-post-eol (propertize eol-str
                                       'cursor t
                                       'display (propertize eol-str 'cursor t)))
          (pre-padding (propertize blank-str 'display fci-padding-display))
          (pre-rule (fci-rule-display blank-str img str t))
          (at-rule (fci-rule-display blank-str img str fci-newline))
-         (at-eol (if fci-newline pre-or-post-eol "")))
+;;         (at-eol (if fci-newline pre-or-post-eol ""))
+         )
     (setq fci-pre-limit-string (concat pre-or-post-eol pre-padding pre-rule)
-          fci-at-limit-string (concat at-eol at-rule)
-          fci-post-limit-string (concat pre-or-post-eol end-cap))))
+          fci-at-limit-string at-rule
+;;          fci-post-limit-string (concat pre-or-post-eol end-cap)
+          )))
 
 ;;; ---------------------------------------------------------------------
 ;;; Disabling
@@ -722,8 +699,7 @@ rough heuristic.)"
       (if fci-line-move-visual-was-buffer-local
           (setq line-move-visual fci-saved-line-move-visual)
         (kill-local-variable 'line-move-visual)))
-    (when fci-handle-truncate-lines
-      (setq truncate-lines fci-saved-truncate-lines))))
+    ))
 
 (defun fci-restore-display-table ()
   "Restore the buffer display table when fci-mode is disabled."
@@ -748,6 +724,12 @@ rough heuristic.)"
 (defun fci-delete-overlays-region (start end)
   "Delete overlays displaying the fill-column rule between START and END."
   (mapc #'(lambda (o) (if (overlay-get o 'fci) (delete-overlay o)))
+        (overlays-in start end)))
+
+(defun fci-delete-overlays-region-win (start end win)
+  "Delete overlays displaying the fill-column rule between START and END."
+  (mapc #'(lambda (o) (if (and (overlay-get o 'fci) (equal win (overlay-get o 'fci-win)))
+                          (delete-overlay o)))
         (overlays-in start end)))
 
 (defun fci-delete-overlays-buffer ()
@@ -779,7 +761,7 @@ rough heuristic.)"
 ;; only if we maintained the overlay center at an early position in the
 ;; buffer.  Since other packages that use overlays typically place them while
 ;; traversing the buffer in a forward direction, that would be a bad idea.
-(defun fci-put-overlays-region (start end)
+(defun fci-put-overlays-region (start end win)
   "Place overlays displaying the fill-column rule between START and END."
   (goto-char start)
   (let (o cc)
@@ -788,14 +770,28 @@ rough heuristic.)"
       (setq cc (current-column)
             o (make-overlay (match-beginning 0) (match-beginning 0)))
       (overlay-put o 'fci t)
+      (overlay-put o 'fci-win win)
+      (overlay-put o 'window win)
       (cond
        ((< cc fci-limit)
         (overlay-put o 'after-string fci-pre-limit-string))
-       ((> cc fci-limit)
-        (overlay-put o 'after-string fci-post-limit-string))
-       (t
+;;        ((> cc fci-limit)
+;;         (overlay-put o 'after-string fci-post-limit-string))
+;;     (t
+       ((= cc fci-limit)
         (overlay-put o 'after-string fci-at-limit-string)))
       (goto-char (match-end 0)))))
+
+(defun fci-redraw-region-win (start end _ignored win)
+  "Erase and redraw the fill-column rule between START and END."
+  (save-match-data
+    (save-excursion
+      (let ((inhibit-point-motion-hooks t))
+        (goto-char end)
+        (setq end (line-beginning-position 2))
+        (fci-delete-overlays-region-win start end win)
+        (if (> (window-width win) fci-rule-column)
+            (fci-put-overlays-region start end win))))))
 
 (defun fci-redraw-region (start end _ignored)
   "Erase and redraw the fill-column rule between START and END."
@@ -804,12 +800,13 @@ rough heuristic.)"
       (let ((inhibit-point-motion-hooks t))
         (goto-char end)
         (setq end (line-beginning-position 2))
-        (fci-delete-overlays-region start end)
-        (fci-put-overlays-region start end))))) 
+        (fci-delete-overlays-region-win start end (selected-window))
+        (if (> (window-width (selected-window)) fci-rule-column)
+            (fci-put-overlays-region start end (selected-window)))))))
 
 (defun fci-redraw-window (win &optional start)
   "Redraw the fill-column rule in WIN starting from START."
-  (fci-redraw-region (or start (window-start win)) (window-end win t) 'ignored))
+  (fci-redraw-region-win (or start (window-start win)) (window-end win t) 'ignored win))
 
 ;; This doesn't determine the strictly minimum amount by which the rule needs
 ;; to be extended, but the amount used is always sufficient, and determining

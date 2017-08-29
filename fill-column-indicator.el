@@ -354,7 +354,6 @@ U+E000-U+F8FF, inclusive)."
 (defvar fci-pre-limit-string)
 (defvar fci-at-limit-string)
 (defvar fci-post-limit-string)
-(defvar fci-padding-display)
 
 ;; The preceding internal variables need to be buffer local and reset when
 ;; the mode is disabled.
@@ -371,7 +370,6 @@ U+E000-U+F8FF, inclusive)."
                               fci-char-width
                               fci-char-height
                               fci-limit
-                              fci-padding-display
                               fci-pre-limit-string
                               fci-at-limit-string
                               fci-post-limit-string))
@@ -455,17 +453,12 @@ on troubleshooting.)"
                   fci-tab-width tab-width
                   fci-limit (if fci-newline
                                 (1+ (- fci-column (length fci-saved-eol)))
-                              fci-column)
-                  ;; The display spec used in overlay before strings to pad out the rule to the fill-column.
-                  fci-padding-display '((when (not (fci-competing-overlay-p buffer-position))
-                                         . (space :align-to (+ fci-column fci-current-lndw)))
-                                         (space :width 0)))
+                              fci-column))
             (fci-make-overlay-strings)
             (fci-update-all-windows t))
         (error
          (fci-mode 0)
          (signal (car error) (cdr error))))
-
     ;; Disabling.
     (fci-restore-display-table)
     (fci-restore-local-vars)
@@ -507,6 +500,13 @@ on troubleshooting.)"
 (defun fci-competing-overlay-p (posn)
   "Return true if there is an overlay at POSN that fills the background."
   (memq t (mapcar #'fci-overlay-fills-background-p (overlays-at posn))))
+
+;; The display spec used in overlay before strings to pad out the rule to the
+;; fill-column.
+(defconst fci-padding-display
+  '((when (not (fci-competing-overlay-p buffer-position))
+      . (space :align-to (+ fci-column fci-current-lndw)))
+    (space :width 0)))
 
 ;; Generate the display spec for the rule.  Basic idea is to use a "cascading
 ;; display property" to display the textual rule if the display doesn't

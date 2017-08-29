@@ -45,7 +45,7 @@
 
 ;; To toggle graphical indication of the fill column in a buffer, use the
 ;; command `fci-mode'.
- 
+
 ;; Configuration
 ;; =============
 
@@ -805,7 +805,7 @@ rough heuristic.)"
         (goto-char end)
         (setq end (line-beginning-position 2))
         (fci-delete-overlays-region start end)
-        (fci-put-overlays-region start end))))) 
+        (fci-put-overlays-region start end)))))
 
 (defun fci-redraw-window (win &optional start)
   "Redraw the fill-column rule in WIN starting from START."

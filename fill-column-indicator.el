@@ -27,13 +27,6 @@
 ;; length of the editing window.  Fill-column-indicator implements this
 ;; facility in Emacs.
 
-;; PLEASE NOTE: There is a small incompatibility between this package and the
-;; current stable Emacs relase (v24.3).  A bug in Emacs's internal display
-;; routine that was introduced shortly before that release can cause vertical
-;; motion commands to skip blank lines when fci-mode is active.  This has
-;; been fixed in Emacs trunk.  See github.com/alpaker/Fill-Column-Indicator/issues/31
-;; for further discussion.
-
 ;; Installation and Usage
 ;; ======================
 
@@ -173,8 +166,8 @@
 
 ;;; Code:
 
-(unless (version<= "22" emacs-version)
-  (error "Fill-column-indicator requires version 22 or later"))
+(unless (version<= "25" emacs-version)
+  (error "Fill-column-indicator requires version 25 or later"))
 
 ;;; ---------------------------------------------------------------------
 ;;; User Options
@@ -296,7 +289,7 @@ Leaving this option set to the default value is recommended."
   :tag "Locally set truncate-lines to t during fci-mode"
   :type 'boolean)
 
-(defcustom fci-handle-line-move-visual (version<= "23" emacs-version)
+(defcustom fci-handle-line-move-visual t
   "Whether fci-mode should set line-move-visual to nil while enabled.
 If non-nil, fci-mode will set line-move-visual to nil in buffers
 in which it is enabled, and restore t to its previous value when
@@ -346,10 +339,10 @@ U+E000-U+F8FF, inclusive)."
 (defvar fci-tab-width)
 (defvar fci-char-width)
 (defvar fci-char-height)
+(defvar fci-current-lndw)  ;; short hand for line-number-display-width
 
 ;; Data used in setting the fill-column rule that only need to be
 ;; occasionally updated in a given buffer.
-(defvar fci-current-lndw)  ;; short hand for line-number-display-width
 (defvar fci-limit)
 (defvar fci-pre-limit-string)
 (defvar fci-at-limit-string)
@@ -399,16 +392,6 @@ U+E000-U+F8FF, inclusive)."
   "Return true if X is an integer greater than zero."
   (and (wholenump x)
        (/= 0 x)))
-
-(if (fboundp 'characterp)
-    (defalias 'fci-character-p 'characterp)
-  ;; For v22.
-  (defun fci-character-p (c)
-    "Return true if C is a character."
-    (and (fci-posint-p c)
-         ;; MAX_CHAR in v22 is (0x1f << 14).  We don't worry about
-         ;; generic chars.
-         (< c 507904))))
 
 (defun fci-determine-padding ()
   "Decide how much padding the overlay needs.
@@ -544,10 +527,10 @@ on troubleshooting.)"
                   (fci-rule-column fci-posint-p t)
                   (fci-rule-width fci-posint-p t)
                   (fci-rule-character-color color-defined-p t)
-                  (fci-rule-character fci-character-p)
-                  (fci-blank-char fci-character-p)
+                  (fci-rule-character characterp)
+                  (fci-blank-char characterp)
                   (fci-dash-pattern floatp)
-                  (fci-eol-char fci-character-p))))
+                  (fci-eol-char characterp))))
     (dolist (check checks)
       (let ((value (symbol-value (nth 0 check)))
             (pred (nth 1 check))
@@ -870,8 +853,7 @@ rough heuristic.)"
 ;;    activate the mode while displaying on a char terminal then subsequently
 ;;    display the buffer on a window frame.)
 ;; 3. If the value of `tab-width' or `fill-column' has changed, we reset the
-;;    rule.  (We could set things up so that the rule adjusted automatically
-;;    to such changes, but it wouldn't work on v22 or v23.)
+;;    rule.
 ;; 4. Cursor properties are ignored when they're out of sight because of
 ;;    horizontal scrolling.  We detect such situations and force a return
 ;;    from hscrolling to bring our requested cursor position back into view.

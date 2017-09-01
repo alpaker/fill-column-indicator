@@ -276,7 +276,7 @@ function `fci-mode' is run."
 
 (defcustom fci-always-use-textual-rule nil
   "When non-nil, the rule is always drawn using textual characters.
-Specifically, fci-mode will use `fci-rule-character' intead of
+Specifically, fci-mode will use `fci-rule-character' instead of
 bitmap images to draw the rule on graphical displays.
 
 Changes to this variable do not take effect until the mode

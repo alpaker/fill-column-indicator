@@ -903,4 +903,7 @@ rough heuristic.)"
 
 (provide 'fill-column-indicator)
 
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; End:
 ;;; fill-column-indicator.el ends here

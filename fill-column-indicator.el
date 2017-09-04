@@ -413,7 +413,8 @@ U+E000-U+F8FF, inclusive)."
 (defun fci-determine-padding ()
   "Decide how much padding the overlay needs.
 When `display-line-numbers` is true, pad by the size of the line number display."
-  (if (and (boundp 'display-line-numbers) display-line-numbers)
+  (if (and (bound-and-true-p display-line-numbers)
+           (fboundp 'line-number-display-width))
       (+ (line-number-display-width) 2)
     0))
 

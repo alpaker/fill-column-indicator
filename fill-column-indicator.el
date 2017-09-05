@@ -3,7 +3,7 @@
 ;; Copyright (c) 2011-2014 Alp Aker
 
 ;; Author: Alp Aker <alp.tekin.aker@gmail.com>
-;; Version: 1.88
+;; Version: 1.89
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or
@@ -363,6 +363,7 @@ U+E000-U+F8FF, inclusive)."
                               fci-char-width
                               fci-char-height
                               fci-limit
+                              fci-current-lndw
                               fci-pre-limit-string
                               fci-at-limit-string
                               fci-post-limit-string))

@@ -874,6 +874,7 @@ rough heuristic.)"
                    (= (frame-char-height) fci-char-height))))
     (fci-mode 1))
    ((not (and (= (or fci-rule-column fill-column) fci-column)
+              (= (fci-determine-padding) fci-current-lndw)
               (= tab-width fci-tab-width)))
     (fci-mode 1))
    ((and (< 0 (window-hscroll))

@@ -3,7 +3,7 @@
 ;; Copyright (c) 2011-2014 Alp Aker
 
 ;; Author: Alp Aker <alp.tekin.aker@gmail.com>
-;; Version: 1.89
+;; Version: 1.90
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or
@@ -339,7 +339,6 @@ U+E000-U+F8FF, inclusive)."
 (defvar fci-tab-width)
 (defvar fci-char-width)
 (defvar fci-char-height)
-(defvar fci-current-lndw)  ;; short hand for line-number-display-width
 
 ;; Data used in setting the fill-column rule that only need to be
 ;; occasionally updated in a given buffer.
@@ -363,7 +362,6 @@ U+E000-U+F8FF, inclusive)."
                               fci-char-width
                               fci-char-height
                               fci-limit
-                              fci-current-lndw
                               fci-pre-limit-string
                               fci-at-limit-string
                               fci-post-limit-string))
@@ -393,14 +391,6 @@ U+E000-U+F8FF, inclusive)."
   "Return true if X is an integer greater than zero."
   (and (wholenump x)
        (/= 0 x)))
-
-(defun fci-determine-padding ()
-  "Decide how much padding the overlay needs.
-When `display-line-numbers` is true, pad by the size of the line number display."
-  (if (and (bound-and-true-p display-line-numbers)
-           (fboundp 'line-number-display-width))
-      (+ (line-number-display-width) 2)
-    0))
 
 ;;; ---------------------------------------------------------------------
 ;;; Mode Definition
@@ -434,7 +424,6 @@ on troubleshooting.)"
             (dolist (hook fci-hook-assignments)
               (apply 'add-hook hook))
             (setq fci-column (or fci-rule-column fill-column)
-                  fci-current-lndw (fci-determine-padding)
                   fci-tab-width tab-width
                   fci-limit (if fci-newline
                                 (1+ (- fci-column (length fci-saved-eol)))
@@ -490,7 +479,7 @@ on troubleshooting.)"
 ;; fill-column.
 (defconst fci-padding-display
   '((when (not (fci-competing-overlay-p buffer-position))
-      . (space :align-to (+ fci-column fci-current-lndw)))
+      . (space :align-to fci-column))
     (space :width 0)))
 
 ;; Generate the display spec for the rule.  Basic idea is to use a "cascading

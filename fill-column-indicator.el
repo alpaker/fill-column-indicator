@@ -1,6 +1,6 @@
 ;;; fill-column-indicator.el --- Graphically indicate the fill column
 
-;; Copyright (c) 2011-2014 Alp Aker
+;; Copyright (c) 2011-2017 Alp Aker
 
 ;; Author: Alp Aker <alp.tekin.aker@gmail.com>
 ;; Version: 1.90

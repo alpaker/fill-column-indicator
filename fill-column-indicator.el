@@ -27,13 +27,6 @@
 ;; length of the editing window.  Fill-column-indicator implements this
 ;; facility in Emacs.
 
-;; PLEASE NOTE: There is a small incompatibility between this package and the
-;; current stable Emacs relase (v24.3).  A bug in Emacs's internal display
-;; routine that was introduced shortly before that release can cause vertical
-;; motion commands to skip blank lines when fci-mode is active.  This has
-;; been fixed in Emacs trunk.  See github.com/alpaker/Fill-Column-Indicator/issues/31
-;; for further discussion.
-
 ;; Installation and Usage
 ;; ======================
 

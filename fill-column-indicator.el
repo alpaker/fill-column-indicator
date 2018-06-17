@@ -427,8 +427,8 @@ on troubleshooting.)"
             (dolist (hook fci-hook-assignments)
               (apply 'add-hook hook))
             (setq fci-column (or fci-rule-column fill-column)
-                  fci-scaled-column (round (* (float fci-column)
-                                              (/ (float (window-font-width)) (frame-char-width))))
+                  fci-scaled-column (* (float fci-column)
+                                              (/ (float (window-font-width)) (frame-char-width)))
                   fci-tab-width tab-width
                   fci-limit (if fci-newline
                                 (1+ (- fci-column (length fci-saved-eol)))
@@ -605,9 +605,9 @@ rough heuristic.)"
                        (throw 'found-graphic (window-frame win))))))))
     (setq fci-char-width (window-font-width)
           fci-char-height (window-font-height)
-          fci-scaled-column (round (* (float (or fci-rule-column fill-column))
+          fci-scaled-column (* (float (or fci-rule-column fill-column))
                                       (/ (float (window-font-width))
-                                        (frame-char-width)))))))
+                                        (frame-char-width))))))
 
 (defmacro fci-with-rule-parameters (&rest body)
   "Define various quantites used in generating rule image descriptors."

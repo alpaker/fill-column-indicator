@@ -102,7 +102,7 @@
 
 ;; Fci-mode needs free use of two characters (specifically, it needs the use
 ;; of two characters whose display table entries it can change
-;; arbitrarily).  Its defualt is to use the first two characters of the
+;; arbitrarily).  Its default is to use the first two characters of the
 ;; Private Use Area of the Unicode BMP, viz. U+E000 and U+E001.  If you need
 ;; to use those characters for some other purpose, set `fci-eol-char' and
 ;; `fci-blank-char' to different values.
@@ -238,7 +238,7 @@ function `fci-mode' is run."
 
 (defcustom fci-dash-pattern 0.75
   "When using a dashed rule, ratio of dash length to line height.
-Values less than 0 or greather than 1 are coerced to the nearest
+Values less than 0 or greater than 1 are coerced to the nearest
 endpoint of that interval.
 
 Changes to this variable do not take effect until the mode

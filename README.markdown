@@ -2,7 +2,7 @@ _The functionality provided by this package has now been implemented natively in
 Emacs as `display-fill-column-indicator-mode`, available as of version 27.0.90.
 Unless you are forced to use an older Emacs, you should use the native
 implementation instead of `fci-mode`. It's unaffected by most of the
-compability issues that this add-on has._
+compatibility issues that this add-on has._
 
 _This package is no longer actively maintained._
 

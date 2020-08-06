@@ -3,7 +3,7 @@
 ;; Copyright (c) 2011-2017 Alp Aker
 
 ;; Author: Alp Aker <alp.tekin.aker@gmail.com>
-;; Version: 1.90
+;; Version: 1.91
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or
@@ -21,6 +21,13 @@
 ;; MA 02111-1307 USA
 
 ;;; Commentary:
+
+;; NB: The functionality provided by this package has now been implemented
+;; natively in Emacs as `display-fill-column-indicator-mode`, available as of
+;; version 27.0.90. Unless you are forced to use an older Emacs, you should use
+;; the native implentation instead of `fci-mode`. It's unaffected by most of the
+;; compability issues that this add-on has. This package is no longer actively
+;; maintained.
 
 ;; Many modern editors and IDEs can graphically indicate the location of the
 ;; fill column by drawing a thin line (in design parlance, a `rule') down the

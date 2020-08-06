@@ -1,5 +1,10 @@
-_This package is no longer actively maintained.  If you're interested in
-becoming maintainer, please let me know._
+_The functionality provided by this package has now been implemented natively in
+Emacs as `display-fill-column-indicator-mode`, available as of version 27.0.90.
+Unless you are forced to use an older Emacs, you should use the native
+implentation instead of `fci-mode`. It's unaffected by most of the
+compability issues that this add-on has._
+
+_This package is no longer actively maintained._
 
 Many modern editors and IDEs can graphically indicate the location of the
 fill column by drawing a thin line (in design parlance, a "rule") down the

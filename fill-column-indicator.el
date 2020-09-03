@@ -455,6 +455,26 @@ on troubleshooting.)"
   (interactive)
   (fci-mode 1))
 
+;;;###autoload
+(defun turn-on-fci-mode-with-column (&optional column)
+  "Turn on fci-mode with setting `fci-rule-column' unconditionally."
+  (interactive
+   (list (read-string (format "Column (%s): "
+                              (or fci-rule-column fill-column))
+                      nil nil fci-rule-column)))
+  (when (stringp column)
+    (setq column (cond ((string= column "")
+                        nil)
+                       ((string-match "\\`[0-9]+\\'" column)
+                        (string-to-number column))
+                       (t
+                        column))))
+  (if (and column
+           (not (fci-posint-p column)))
+      (message "Column is not a interger.")
+    (setq fci-rule-column column)
+    (fci-mode 1)))
+
 (defun turn-off-fci-mode ()
   "Turn off fci-mode unconditionally."
   (interactive)

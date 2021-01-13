@@ -342,6 +342,7 @@ U+E000-U+F8FF, inclusive)."
 
 ;; Record current state of some quantities, so we can detect changes to them.
 (defvar fci-column)
+(defvar fci-scaled-column)
 (defvar fci-newline)
 (defvar fci-tab-width)
 (defvar fci-char-width)
@@ -364,6 +365,7 @@ U+E000-U+F8FF, inclusive)."
                               fci-display-table-processed
                               fci-local-vars-set
                               fci-column
+                              fci-scaled-column
                               fci-newline
                               fci-tab-width
                               fci-char-width
@@ -399,6 +401,7 @@ U+E000-U+F8FF, inclusive)."
   (and (wholenump x)
        (/= 0 x)))
 
+
 ;;; ---------------------------------------------------------------------
 ;;; Mode Definition
 ;;; ---------------------------------------------------------------------
@@ -431,6 +434,8 @@ on troubleshooting.)"
             (dolist (hook fci-hook-assignments)
               (apply 'add-hook hook))
             (setq fci-column (or fci-rule-column fill-column)
+                  fci-scaled-column (* (float fci-column)
+                                              (/ (float (window-font-width)) (frame-char-width)))
                   fci-tab-width tab-width
                   fci-limit (if fci-newline
                                 (1+ (- fci-column (length fci-saved-eol)))
@@ -486,7 +491,7 @@ on troubleshooting.)"
 ;; fill-column.
 (defconst fci-padding-display
   '((when (not (fci-competing-overlay-p buffer-position))
-      . (space :align-to fci-column))
+      . (space :align-to fci-scaled-column))
     (space :width 0)))
 
 ;; Generate the display spec for the rule.  Basic idea is to use a "cascading
@@ -605,8 +610,11 @@ rough heuristic.)"
                    (dolist (win (fci-get-buffer-windows t))
                      (when (display-images-p (window-frame win))
                        (throw 'found-graphic (window-frame win))))))))
-    (setq fci-char-width (frame-char-width frame)
-          fci-char-height (frame-char-height frame))))
+    (setq fci-char-width (window-font-width)
+          fci-char-height (window-font-height)
+          fci-scaled-column (* (float (or fci-rule-column fill-column))
+                                      (/ (float (window-font-width))
+                                        (frame-char-width))))))
 
 (defmacro fci-with-rule-parameters (&rest body)
   "Define various quantites used in generating rule image descriptors."
@@ -864,10 +872,10 @@ rough heuristic.)"
               (equal (aref buffer-display-table 10) fci-newline)))
     (setq fci-display-table-processed nil)
     (fci-mode 1))
-   ((and (< 1 (frame-char-width))
+   ((and (< 1 (window-font-width))
          (not fci-always-use-textual-rule)
-         (not (and (= (frame-char-width) fci-char-width)
-                   (= (frame-char-height) fci-char-height))))
+         (not (and (= (window-font-width) fci-char-width)
+                   (= (window-font-height) fci-char-height))))
     (fci-mode 1))
    ((not (and (= (or fci-rule-column fill-column) fci-column)
               (= tab-width fci-tab-width)))

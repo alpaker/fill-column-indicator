@@ -325,6 +325,28 @@ U+E000-U+F8FF, inclusive)."
   :group 'fill-column-indicator
   :type 'character)
 
+(defun fci--global-turn-on-p ()
+  "Default predicate for `global-fci-mode-turn-on-predicate'."
+  ;; These checks mimic the behavior of Emacs 27's
+  ;; `global-display-fill-column-indicator-mode'.
+  (and (not (minibufferp))
+       (not (and (daemonp) (null (frame-parameter nil 'client))))
+       ;; In Emacs 28, the `define-globalized-major-mode' `:predicate'
+       ;; keyword argument can be used to control which major modes
+       ;; the globalized minor mode activates the buffer-local minor
+       ;; mode, and it is customizable too.  For compatibility with
+       ;; older versions of Emacs, the major mode check is done here
+       ;; instead.
+       (not (derived-mode-p #'special-mode))))
+
+(defcustom global-fci-mode-turn-on-predicate #'fci--global-turn-on-p
+  "Predicate controlling `global-fci-mode' behavior.
+This is a parameterless function (lambda or function name) that
+should return non-nil if `global-fci-mode' should turn on
+`fci-mode' for the buffer, nil if it should not."
+  :type '(function)
+  :group 'fill-column-indicator)
+
 ;;; ---------------------------------------------------------------------
 ;;; Internal Variables and Constants
 ;;; ---------------------------------------------------------------------
@@ -459,6 +481,11 @@ on troubleshooting.)"
   "Turn off fci-mode unconditionally."
   (interactive)
   (fci-mode 0))
+
+;;;###autoload
+(define-globalized-minor-mode global-fci-mode fci-mode
+  (lambda () (when (funcall global-fci-mode-turn-on-predicate) (fci-mode 1)))
+  :group 'fill-column-indicator)
 
 ;;; ---------------------------------------------------------------------
 ;;; Display Property Specs
